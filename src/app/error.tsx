@@ -1,0 +1,12 @@
+"use client";
+
+export default function Error({ reset }: { reset: () => void }) {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-center">
+      <h2 className="text-xl font-semibold">Something went wrong.</h2>
+      <button onClick={() => reset()} className="rounded-full bg-blue-600 px-4 py-2 text-white">
+        Try again
+      </button>
+    </div>
+  );
+}
