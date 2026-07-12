@@ -44,15 +44,17 @@ export function TopNavbar({ title, subtitle }: TopNavbarProps) {
           </button>
 
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <button className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50">
-                <Avatar className="h-9 w-9 rounded-full bg-blue-600 text-white">
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <span className="hidden sm:inline">Jane Doe</span>
-                <ChevronDown className="h-4 w-4 text-slate-500" />
-              </button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <button className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50">
+                  <Avatar className="h-9 w-9 rounded-full bg-blue-600 text-white">
+                    <AvatarFallback>JD</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden sm:inline">Jane Doe</span>
+                  <ChevronDown className="h-4 w-4 text-slate-500" />
+                </button>
+              }
+            />
             <DropdownMenuContent className="w-56">
               <DropdownMenuItem>
                 <Link href="/profile" className="flex items-center gap-2 w-full">

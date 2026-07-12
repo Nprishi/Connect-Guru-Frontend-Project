@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import type { ReactNode } from "react";
@@ -65,11 +66,13 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <div className="md:hidden">
           <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
             <Sheet>
-              <SheetTrigger>
-                <Button variant="outline" size="icon" className="h-11 w-11 rounded-2xl">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
+              <SheetTrigger
+                render={
+                  <Button variant="outline" size="icon" className="h-11 w-11 rounded-2xl">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                }
+              />
               <SheetContent side="left" className="w-72 p-0">
                 <Sidebar items={navigation} />
               </SheetContent>
