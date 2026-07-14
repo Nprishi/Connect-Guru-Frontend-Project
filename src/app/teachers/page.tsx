@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTeachers } from "@/api/teacher.api";
 import SearchPage from "@/features/search/SearchPage";
 import { Badge } from "@/components/ui/badge";
@@ -36,8 +37,10 @@ export default async function TeachersPage() {
                 ))}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Available for onboarding</span>
-                <Button size="sm">View profile</Button>
+                <span className="text-sm text-slate-600">{teacher.availability?.join(", ") || "Available now"}</span>
+                <Link href={`/teachers/${teacher.id}`}>
+                  <Button size="sm">View profile</Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

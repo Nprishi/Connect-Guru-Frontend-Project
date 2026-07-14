@@ -11,6 +11,8 @@ export const API_ENDPOINTS = {
   teachers: {
     list: "/teachers",
     profile: (userId: string) => `/teachers/profile/${userId}`,
+    students: "/teachers/students",
+    studentsById: (teacherId: string) => `/teachers/${teacherId}/students`,
   },
   students: {
     profile: "/students/profile",
@@ -26,5 +28,8 @@ export const API_ENDPOINTS = {
   admin: {
     dashboard: "/admin/dashboard",
     users: "/admin/users",
+  },
+  notifications: {
+    list: "/notifications",
   },
 };

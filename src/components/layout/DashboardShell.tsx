@@ -4,12 +4,45 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, CalendarDays, CreditCard, LayoutDashboard, LogOut, Menu, MessageSquare, Package, Search, Settings, User, Users } from "lucide-react";
+import {
+  Bell,
+  BookOpen,
+  CalendarDays,
+  CreditCard,
+  LayoutDashboard,
+  Layers,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Package,
+  Search,
+  Settings,
+  Star,
+  TrendingUp,
+  User,
+  Users,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/constants/routes";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+
+const adminNavigation = [
+  { label: "Dashboard", href: ROUTES.dashboard.admin, icon: LayoutDashboard },
+  { label: "Students", href: "/admin/students", icon: Users },
+  { label: "Teachers", href: "/admin/teachers", icon: User },
+  { label: "Packages", href: "/admin/packages", icon: Package },
+  { label: "Categories", href: "/admin/categories", icon: Layers },
+  { label: "Subjects", href: "/admin/subjects", icon: BookOpen },
+  { label: "Hire Requests", href: "/admin/hire-requests", icon: MessageSquare },
+  { label: "Transactions", href: "/admin/transactions", icon: CreditCard },
+  { label: "Reports", href: "/admin/reports", icon: Star },
+  { label: "Analytics", href: "/admin/analytics", icon: TrendingUp },
+  { label: "Notifications", href: "/admin/notifications", icon: Bell },
+  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Profile", href: ROUTES.profile, icon: User },
+  { label: "Logout", href: "/logout", icon: LogOut },
+];
 
 const studentNavigation = [
   { label: "Dashboard", href: ROUTES.dashboard.student, icon: LayoutDashboard },
@@ -38,6 +71,10 @@ const teacherNavigation = [
 ];
 
 function getNavigation(pathname: string) {
+  if (pathname.startsWith(ROUTES.dashboard.admin)) {
+    return adminNavigation;
+  }
+
   if (pathname.startsWith(ROUTES.dashboard.teacher)) {
     return teacherNavigation;
   }
@@ -48,8 +85,15 @@ function getNavigation(pathname: string) {
 export function DashboardShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const navigation = getNavigation(pathname);
+
+  const role = user?.role;
+  const brandHref = role === "teacher"
+    ? ROUTES.dashboard.teacher
+    : role === "student"
+    ? ROUTES.dashboard.student
+    : ROUTES.home;
 
   async function handleLogout() {
     await signOut();
@@ -58,34 +102,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-slate-100">
-      <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-white md:flex">
-        <Sidebar items={navigation} />
+      <aside className="w-72 shrink-0 border-r border-slate-200 bg-white">
+        <Sidebar items={navigation} brandHref={brandHref} />
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <div className="md:hidden">
-          <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-            <Sheet>
-              <SheetTrigger
-                render={
-                  <Button variant="outline" size="icon" className="h-11 w-11 rounded-2xl">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                }
-              />
-              <SheetContent side="left" className="w-72 p-0">
-                <Sidebar items={navigation} />
-              </SheetContent>
-            </Sheet>
-            <Link href="/" className="text-lg font-semibold text-slate-900">
-              Connect Guru
-            </Link>
-            <button className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm">
-              <Bell className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>

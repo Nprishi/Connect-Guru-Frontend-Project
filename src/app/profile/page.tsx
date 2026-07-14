@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
 import { getOwnProfile } from "@/api/profile.api";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,13 +15,60 @@ import { Separator } from "@/components/ui/separator";
 import type { UserProfile } from "@/types/user";
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const user = useAuthStore((state) => state.user);
+  const updateUser = useAuthStore((state) => state.updateUser);
+  const [profile, setProfile] = useState<UserProfile | null>(user ?? null);
+  const [name, setName] = useState<string>(user ? `${user.firstName} ${user.lastName}` : "");
+  const [email, setEmail] = useState<string>(user?.email ?? "");
 
   useEffect(() => {
+    if (user) {
+      setProfile(user);
+      setName(`${user.firstName} ${user.lastName}`);
+      setEmail(user.email);
+      return;
+    }
+
     getOwnProfile()
-      .then((response) => setProfile(response.data))
+      .then((response) => {
+        setProfile(response.data);
+        setName(`${response.data.firstName} ${response.data.lastName}`);
+        setEmail(response.data.email);
+      })
       .catch(() => setProfile(null));
-  }, []);
+  }, [user]);
+
+  function handleSave() {
+    if (!profile) {
+      return;
+    }
+
+    const [firstName, ...rest] = name.trim().split(" ");
+    const lastName = rest.join(" ");
+
+    const updatedProfile = {
+      ...profile,
+      firstName,
+      lastName,
+      email,
+    };
+
+    setProfile(updatedProfile);
+    updateUser({ firstName, lastName, email });
+  }
+
+  function handleReset() {
+    if (!profile) {
+      return;
+    }
+
+    setName(`${profile.firstName} ${profile.lastName}`);
+    setEmail(profile.email);
+  }
+
+  const initials = profile ? `${profile.firstName?.[0] ?? ""}${profile.lastName?.[0] ?? ""}` : "U";
+  const fullName = profile ? `${profile.firstName} ${profile.lastName}` : "Your profile";
+  const roleLabel = profile?.role ?? "Member";
 
   return (
     <div className="space-y-4">
@@ -41,17 +91,27 @@ export default function ProfilePage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label>Full name</Label>
-              <Input placeholder="Full name" defaultValue={profile ? `${profile.firstName} ${profile.lastName}` : ""} className="mt-2" />
+              <Input
+                placeholder="Full name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className="mt-2"
+              />
             </div>
             <div>
               <Label>Email</Label>
-              <Input placeholder="Email" defaultValue={profile?.email ?? ""} className="mt-2" />
+              <Input
+                placeholder="Email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="mt-2"
+              />
             </div>
           </div>
           <Separator className="my-4" />
           <div className="flex flex-wrap gap-2">
-            <Button>Save changes</Button>
-            <Button variant="outline">Reset</Button>
+            <Button onClick={handleSave}>Save changes</Button>
+            <Button variant="outline" onClick={handleReset}>Reset</Button>
           </div>
         </CardContent>
       </Card>

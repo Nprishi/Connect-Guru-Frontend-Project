@@ -1,4 +1,7 @@
-import { ArrowRight, CheckCircle2, Gift, Heart, LayoutDashboard, MessageCircle } from "lucide-react";
+"use client";
+
+import { ArrowRight, MessageCircle } from "lucide-react";
+import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -6,59 +9,90 @@ import { DashboardTable } from "@/components/dashboard/DashboardTable";
 import { NotificationsCard } from "@/components/dashboard/NotificationsCard";
 import { OverviewCard } from "@/components/dashboard/OverviewCard";
 import { TopNavbar } from "@/components/dashboard/TopNavbar";
-
-const stats = [
-  { title: "Total Requests", value: "18", description: "Requests created this month", icon: MessageCircle, accent: "blue" as const },
-  { title: "Active Packages", value: "4", description: "Learning bundles in progress", icon: Gift, accent: "teal" as const },
-  { title: "Favorite Teachers", value: "6", description: "Saved educator profiles", icon: Heart, accent: "violet" as const },
-  { title: "Completed Sessions", value: "42", description: "Lessons finished this quarter", icon: CheckCircle2, accent: "indigo" as const },
-];
-
-const teachersTable = {
-  columns: ["Teacher", "Subject", "Rating", "Availability"],
-  rows: [
-    ["Maya Singh", "Physics", "4.9", "Mon, Wed"],
-    ["Noah Williams", "Mathematics", "4.8", "Tue, Thu"],
-    ["Sophia Brown", "English", "4.7", "Fri"],
-    ["Liam Johnson", "Chemistry", "4.8", "Mon, Sat"],
-  ],
-};
-
-const requestTable = {
-  columns: ["Request", "Teacher", "Status", "Next Step"],
-  rows: [
-    ["Calculus support", "Noah Williams", "Pending", "Review"],
-    ["Essay review", "Sophia Brown", "Confirmed", "Join"],
-    ["Science revision", "Maya Singh", "Awaiting", "Message"],
-    ["SAT planning", "Liam Johnson", "Completed", "Feedback"],
-  ],
-};
+import { useAuthStore } from "@/store/useAuthStore";
+import { usePackagesQuery, useTeachersQuery } from "@/hooks/useQueryHooks";
 
 export default function StudentDashboard() {
+  const user = useAuthStore((state) => state.user);
+  const displayName = user ? `${user.firstName} ${user.lastName}` : "Student";
+
+  const { data: teachersData } = useTeachersQuery();
+  const { data: packagesData } = usePackagesQuery();
+  const teachers = Array.isArray(teachersData) ? teachersData : [];
+  const packages = Array.isArray(packagesData) ? packagesData : [];
+
+  const stats = useMemo(
+    () => [
+      {
+        title: "Available Teachers",
+        value: String(teachers.length),
+        description: "Teachers currently available to book",
+        icon: MessageCircle,
+        accent: "blue" as const,
+      },
+      {
+        title: "Active Packages",
+        value: String(packages.length),
+        description: "Packages available from our catalog",
+        icon: MessageCircle,
+        accent: "teal" as const,
+      },
+      {
+        title: "Saved Teachers",
+        value: "—",
+        description: "Track your favorite mentors",
+        icon: MessageCircle,
+        accent: "violet" as const,
+      },
+      {
+        title: "Completed Sessions",
+        value: "—",
+        description: "Lessons finished this month",
+        icon: MessageCircle,
+        accent: "indigo" as const,
+      },
+    ],
+    [packages.length, teachers.length],
+  );
+
+  const teacherRows = teachers.slice(0, 4).map((teacher) => [
+    teacher.name,
+    teacher.subjects?.[0] ?? "—",
+    "4.9",
+    teacher.availability?.[0] ?? "—",
+  ]);
+
+  const packageRows = packages.slice(0, 4).map((pkg) => [
+    pkg.name,
+    `${pkg.sessions} sessions`,
+    `$${pkg.price}`,
+    pkg.isActive ? "Active" : "Inactive",
+  ]);
+
   return (
     <div className="space-y-6">
       <TopNavbar title="Student Dashboard" subtitle="Your learning command center" />
 
       <Card className="overflow-hidden shadow-sm">
         <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-slate-900 p-8 text-white">
+          <div className="bg-linear-to-br from-blue-600 via-blue-700 to-slate-900 p-8 text-white">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">Welcome back</p>
-            <h2 className="mt-4 text-3xl font-semibold">Jane Doe</h2>
+            <h2 className="mt-4 text-3xl font-semibold">{displayName}</h2>
             <p className="mt-3 max-w-xl text-sm text-slate-200">
-              Track your reading, requests, packages, and next sessions in one modern dashboard.
+              Track your learning progress, available packages, and top teachers from the platform.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button>Browse teachers</Button>
-              <Button variant="outline">Manage packages</Button>
+              <Button className="text-green-800" variant="outline">Manage packages</Button>
             </div>
           </div>
           <div className="grid gap-4 bg-slate-50 p-6">
             <div className="rounded-3xl bg-white p-5 shadow-sm">
               <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">Today’s focus</p>
-              <p className="mt-3 text-2xl font-semibold text-slate-900">2 sessions scheduled</p>
+              <p className="mt-3 text-2xl font-semibold text-slate-900">Keep learning</p>
               <div className="mt-4 space-y-3 text-sm text-slate-600">
-                <p>10:00 AM — Geometry tutorial with Noah</p>
-                <p>3:00 PM — Chemistry revision with Maya</p>
+                <p>Find the right teacher and book your next session.</p>
+                <p>Review package details and match with a tutor.</p>
               </div>
             </div>
             <div className="rounded-3xl bg-white p-5 shadow-sm">
@@ -69,8 +103,8 @@ export default function StudentDashboard() {
                   Keep going
                 </div>
               </div>
-              <p className="mt-3 text-2xl font-semibold text-slate-900">84% complete</p>
-              <p className="mt-2 text-sm text-slate-600">You’re on track to hit your learning goals this month.</p>
+              <p className="mt-3 text-2xl font-semibold text-slate-900">Stay consistent</p>
+              <p className="mt-2 text-sm text-slate-600">Choose a teacher, book a package, and start your next lesson.</p>
             </div>
           </div>
         </div>
@@ -84,11 +118,11 @@ export default function StudentDashboard() {
 
       <div className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
         <div className="space-y-4">
-          <DashboardTable title="Recent Teachers" description="Teachers you’ve engaged with recently." columns={teachersTable.columns} rows={teachersTable.rows} />
-          <DashboardTable title="Recent Requests" description="Your latest learning requests and current status." columns={requestTable.columns} rows={requestTable.rows} />
+          <DashboardTable title="Available Teachers" description="Teachers currently listed in the platform." columns={["Teacher", "Primary Subject", "Rating", "Availability"]} rows={teacherRows} />
+          <DashboardTable title="Package Highlights" description="Popular learning packages backed by the database." columns={["Package", "Sessions", "Price", "Status"]} rows={packageRows} />
         </div>
         <div className="space-y-4">
-          <OverviewCard title="Upcoming sessions" description="A quick glance at your next lessons and priorities." actionLabel="View schedule" />
+          
           <NotificationsCard />
         </div>
       </div>

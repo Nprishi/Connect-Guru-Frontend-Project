@@ -14,16 +14,17 @@ interface DashboardNavItem {
 
 interface SidebarProps {
   items: DashboardNavItem[];
+  brandHref?: string;
   onNavigate?: () => void;
 }
 
-export function Sidebar({ items, onNavigate }: SidebarProps) {
+export function Sidebar({ items, brandHref = "/", onNavigate }: SidebarProps) {
   const pathname = usePathname();
 
   return (
     <div className="flex h-full flex-col bg-white">
       <div className="border-b border-slate-200 px-6 py-5">
-        <Link href="/" className="flex items-center gap-3" onClick={onNavigate}>
+        <Link href={brandHref} className="flex items-center gap-3" onClick={onNavigate}>
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-sm">
             <span className="text-lg font-semibold">CG</span>
           </div>
@@ -37,7 +38,7 @@ export function Sidebar({ items, onNavigate }: SidebarProps) {
       <nav className="flex-1 space-y-1 px-4 py-6">
         {items.map((item) => {
           const Icon = item.icon;
-          const active = pathname === item.href;
+          const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}

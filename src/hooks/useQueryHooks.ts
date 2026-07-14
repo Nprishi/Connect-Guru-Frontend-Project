@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -9,8 +10,13 @@ import {
   registerUser,
   getProfile,
 } from "@/api/auth.api";
-import { getPackages } from "@/api/package.api";
-import { getTeachers, getTeacherProfile } from "@/api/teacher.api";
+import { getPackages, getTeacherPackages } from "@/api/package.api";
+import {
+  getTeachers,
+  getTeacherProfile,
+  getTeacherOverview,
+} from "@/api/teacher.api";
+import { getNotifications } from "@/api/notification.api";
 import { getAdminDashboard } from "@/api/admin.api";
 import type { AuthResponse, LoginPayload, RegisterPayload } from "@/types/auth";
 
@@ -70,7 +76,17 @@ export function useProfileQuery() {
 export function useTeachersQuery(subject?: string) {
   return useQuery({
     queryKey: ["teachers", subject ?? "all"],
-    queryFn: () => getTeachers(subject).then((res) => res.data),
+    queryFn: async () => {
+      const response = await getTeachers(subject);
+      const result = response.data as unknown;
+
+      if (Array.isArray(result)) {
+        return result;
+      }
+
+      const nested = (result as any)?.data;
+      return Array.isArray(nested) ? nested : [];
+    },
     staleTime: 1000 * 60 * 5,
   });
 }
@@ -84,10 +100,37 @@ export function useTeacherQuery(userId?: string) {
   });
 }
 
+export function useTeacherOverviewQuery(teacherId?: string) {
+  return useQuery({
+    queryKey: ["teacher-overview", teacherId],
+    queryFn: () => getTeacherOverview().then((res) => res.data),
+    enabled: Boolean(teacherId),
+
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useNotificationsQuery() {
+  return useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => getNotifications().then((res) => res.data),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
 export function usePackagesQuery() {
   return useQuery({
     queryKey: ["packages"],
     queryFn: () => getPackages().then((res) => res.data),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useTeacherPackagesQuery(teacherId?: string) {
+  return useQuery({
+    queryKey: ["teacherPackages", teacherId],
+    queryFn: () => getTeacherPackages(teacherId!).then((res) => res.data),
+    enabled: Boolean(teacherId),
     staleTime: 1000 * 60 * 5,
   });
 }

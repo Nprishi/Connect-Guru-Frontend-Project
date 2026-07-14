@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/common/AuthCard";
+import { Select } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/constants/routes";
 
@@ -78,7 +79,12 @@ export default function RegisterPage() {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Gender</label>
-          <input value={form.gender} onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))} className="w-full rounded-xl border border-slate-300 px-3 py-2" />
+          <Select value={form.gender} onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}>
+            <option value="">Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </Select>
         </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         <button className="w-full rounded-xl bg-blue-600 px-4 py-2 font-medium text-white">Register</button>

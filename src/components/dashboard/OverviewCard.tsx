@@ -1,53 +1,386 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Bell, CalendarDays, CheckCircle2, ChevronRight } from "lucide-react";
+"use client";
 
-interface OverviewCardProps {
+import { motion } from "framer-motion";
+import {
+  ChevronRight,
+  Clock3,
+  TrendingUp,
+} from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+import { Button } from "@/components/ui/button";
+
+
+interface OverviewItem {
   title: string;
   description: string;
-  actionLabel: string;
+  value: string | number;
+  icon: React.ElementType;
+  color: string;
 }
 
-export function OverviewCard({ title, description, actionLabel }: OverviewCardProps) {
+
+interface OverviewCardProps {
+
+  title: string;
+
+  description: string;
+
+  actionLabel: string;
+
+  items: OverviewItem[];
+
+  todaySessions: number;
+
+  onAction?: () => void;
+
+}
+
+
+
+export function OverviewCard({
+  title,
+  description,
+  actionLabel,
+  items,
+  todaySessions,
+  onAction,
+}: OverviewCardProps) {
+
+
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 rounded-3xl bg-slate-50 p-4">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-600 text-white">
-              <CalendarDays className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-900">Upcoming sessions</p>
-              <p className="text-sm text-slate-500">Keep your day on track with the next lessons.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-3xl bg-slate-50 p-4">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-900 text-white">
-              <CheckCircle2 className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-900">Confirmed bookings</p>
-              <p className="text-sm text-slate-500">Everything is ready for the next learning session.</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-col justify-between rounded-3xl bg-slate-950 p-6 text-white">
+
+    <Card
+      className="
+        overflow-hidden
+        rounded-3xl
+        border-slate-200
+        bg-white
+        shadow-sm
+      "
+    >
+
+
+      {/* HEADER */}
+
+      <CardHeader
+        className="
+          p-6
+        "
+      >
+
+        <div
+          className="
+            flex
+            items-start
+            justify-between
+            gap-4
+          "
+        >
+
           <div>
-            <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Today</p>
-            <p className="mt-4 text-4xl font-semibold">5 sessions</p>
-            <p className="mt-2 text-sm text-slate-300">Best day for focus and consistent progress.</p>
+
+            <CardTitle
+              className="
+                text-xl
+                font-semibold
+                text-slate-900
+              "
+            >
+              {title}
+            </CardTitle>
+
+
+            <CardDescription
+              className="
+                mt-1
+              "
+            >
+              {description}
+            </CardDescription>
+
           </div>
-          <Button variant="secondary" className="mt-4 inline-flex items-center gap-2 justify-center bg-white text-slate-950 hover:bg-slate-100">
-            {actionLabel}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+
+
+          <div
+            className="
+              rounded-2xl
+              bg-indigo-50
+              p-3
+            "
+          >
+
+            <TrendingUp
+              className="
+                h-5
+                w-5
+                text-indigo-600
+              "
+            />
+
+          </div>
+
+
         </div>
+
+
+      </CardHeader>
+
+
+
+
+
+      <CardContent
+        className="
+          space-y-5
+          p-6
+          pt-0
+        "
+      >
+
+
+
+        {/* OVERVIEW ITEMS */}
+
+
+        <div
+          className="
+            grid
+            gap-4
+            sm:grid-cols-2
+          "
+        >
+
+          {
+            items.map((item) => {
+
+
+              const Icon = item.icon;
+
+
+              return (
+
+                <motion.div
+
+                  key={item.title}
+
+                  whileHover={{
+                    y: -4,
+                  }}
+
+                  transition={{
+                    duration: 0.2,
+                  }}
+
+                  className="
+                    rounded-3xl
+                    border
+                    border-slate-100
+                    bg-slate-50/70
+                    p-5
+                    transition
+                  "
+
+                >
+
+
+                  <div
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                    "
+                  >
+
+
+                    <div
+                      className={`
+                        grid
+                        h-11
+                        w-11
+                        place-items-center
+                        rounded-2xl
+                        ${item.color}
+                      `}
+                    >
+
+                      <Icon
+                        className="
+                          h-5
+                          w-5
+                        "
+                      />
+
+                    </div>
+
+
+                    <span
+                      className="
+                        text-2xl
+                        font-bold
+                        text-slate-900
+                      "
+                    >
+                      {item.value}
+                    </span>
+
+
+                  </div>
+
+
+
+
+                  <h4
+                    className="
+                      mt-4
+                      text-sm
+                      font-semibold
+                      text-slate-900
+                    "
+                  >
+                    {item.title}
+                  </h4>
+
+
+
+                  <p
+                    className="
+                      mt-1
+                      text-xs
+                      leading-relaxed
+                      text-slate-500
+                    "
+                  >
+                    {item.description}
+                  </p>
+
+
+                </motion.div>
+
+
+              );
+
+
+            })
+          }
+
+
+        </div>
+
+
+
+
+
+        {/* TODAY SESSION CARD */}
+
+
+        <div
+          className="
+            rounded-3xl
+            bg-gradient-to-br
+            from-indigo-600
+            to-violet-600
+            p-6
+            text-white
+          "
+        >
+
+
+          <div
+            className="
+              flex
+              items-center
+              gap-2
+              text-sm
+              text-indigo-100
+            "
+          >
+
+            <Clock3
+              className="
+                h-4
+                w-4
+              "
+            />
+
+            Today Sessions
+
+          </div>
+
+
+
+          <div
+            className="
+              mt-3
+              text-4xl
+              font-bold
+            "
+          >
+
+            {todaySessions}
+
+          </div>
+
+
+
+          <p
+            className="
+              mt-2
+              text-sm
+              text-indigo-100
+            "
+          >
+
+            Keep your schedule organized and deliver quality lessons.
+
+          </p>
+
+
+
+
+          <Button
+
+            onClick={onAction}
+
+            className="
+              mt-5
+              w-full
+              rounded-xl
+              bg-white
+              text-indigo-700
+              hover:bg-indigo-50
+            "
+
+          >
+
+            {actionLabel}
+
+
+            <ChevronRight
+              className="
+                ml-2
+                h-4
+                w-4
+              "
+            />
+
+          </Button>
+
+
+        </div>
+
+
       </CardContent>
+
+
     </Card>
+
   );
 }

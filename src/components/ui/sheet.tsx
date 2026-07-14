@@ -127,6 +127,8 @@ function SheetDescription({
   )
 }
 
+const createSheetHandle = SheetPrimitive.createHandle;
+
 export {
   Sheet,
   SheetTrigger,
@@ -136,4 +138,5 @@ export {
   SheetFooter,
   SheetTitle,
   SheetDescription,
+  createSheetHandle,
 }
