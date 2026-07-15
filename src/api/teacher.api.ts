@@ -20,14 +20,11 @@ export const getTeacherOverview = () => {
 };
 
 export async function getTeacherStudents(teacherId?: string) {
-  const endpoints = [] as string[];
-
-  if (teacherId) {
-    endpoints.push(API_ENDPOINTS.teachers.studentsById(teacherId));
+  if (!teacherId) {
+    return { data: [] } as { data: unknown[] };
   }
 
-  endpoints.push(API_ENDPOINTS.teachers.students);
-  endpoints.push("/teacher/students");
+  const endpoints = [API_ENDPOINTS.teachers.studentsById(teacherId)];
 
   for (const endpoint of endpoints) {
     try {
@@ -39,5 +36,5 @@ export async function getTeacherStudents(teacherId?: string) {
     }
   }
 
-  return apiClient.get(API_ENDPOINTS.teachers.students);
+  return { data: [] } as { data: unknown[] };
 }

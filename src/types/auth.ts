@@ -24,6 +24,7 @@ export interface AuthUser {
   role: UserRole;
   phone?: string;
   gender?: string;
+  avatar?: string;
 }
 
 export interface AuthResponse {

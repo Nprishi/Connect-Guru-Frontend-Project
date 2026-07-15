@@ -5,18 +5,15 @@ import { useEffect, useState } from "react";
 import { CalendarDays, Sparkles } from "lucide-react";
 import { Searchbar } from "./Searchbar";
 
-
 import { NotificationButton } from "./NotificationButton";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { MobileNavbar } from "./MobileNavbar";
 // import { QuickActions } from "./QuickActions";
 
-
 interface TopNavbarProps {
   title: string;
   subtitle: string;
 }
-
 
 export function TopNavbar({
   title,
@@ -34,12 +31,10 @@ export function TopNavbar({
       setScrolled(window.scrollY > 20);
     };
 
-
     window.addEventListener(
       "scroll",
       handleScroll
     );
-
 
     return () => {
       window.removeEventListener(
@@ -49,8 +44,6 @@ export function TopNavbar({
     };
 
   }, []);
-
-
 
   return (
 

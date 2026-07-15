@@ -41,15 +41,24 @@ export function NotificationButton() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger >
-        <motion.button
+      <DropdownMenuTrigger>
+        <motion.div
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.97 }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              event.currentTarget.click();
+            }
+          }}
           className="
             relative
             flex
             h-11
             w-11
+            cursor-pointer
             items-center
             justify-center
             rounded-2xl
@@ -84,7 +93,7 @@ export function NotificationButton() {
               {unreadCount > 99 ? "99+" : unreadCount}
             </Badge>
           )}
-        </motion.button>
+        </motion.div>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent

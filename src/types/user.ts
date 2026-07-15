@@ -1,10 +1,6 @@
-export interface UserProfile {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  phone?: string;
-  gender?: string;
+import type { AuthUser } from "@/types/auth";
+
+export interface UserProfile extends AuthUser {
+  avatar?: string;
   status?: string;
 }

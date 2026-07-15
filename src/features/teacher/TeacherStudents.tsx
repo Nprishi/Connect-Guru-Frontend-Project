@@ -28,8 +28,15 @@ export default function TeacherStudents() {
 
   useEffect(() => {
     const fetchStudents = async () => {
+      if (!user?.id) {
+        setStudents([]);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const res = await getTeacherStudents(user?.id);
+        const res = await getTeacherStudents(user.id);
         setStudents(res.data.data ?? res.data ?? []);
       } catch (err) {
         console.error("Failed to fetch teacher students:", err);
