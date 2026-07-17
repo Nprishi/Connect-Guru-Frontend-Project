@@ -134,7 +134,7 @@ export function MobileNavbar() {
 
                 <SheetTrigger >
 
-                    <motion.button
+                    <motion.div
 
                         whileTap={{
                             scale: 0.95,
@@ -163,7 +163,7 @@ export function MobileNavbar() {
               "
                         />
 
-                    </motion.button>
+                    </motion.div>
 
                 </SheetTrigger>
 

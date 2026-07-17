@@ -39,7 +39,7 @@ export function ProfileDropdown() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger >
-                <motion.button
+                <motion.div
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
                     className="
@@ -80,7 +80,7 @@ export function ProfileDropdown() {
                     </div>
 
                     <ChevronDown className="h-4 w-4 text-slate-500" />
-                </motion.button>
+                </motion.div>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent

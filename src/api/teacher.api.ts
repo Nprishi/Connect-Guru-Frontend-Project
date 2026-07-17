@@ -1,40 +1,55 @@
 import axios from "axios";
+
 import apiClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/api";
 import type { TeacherProfile } from "@/types/teacher";
-import api from "@/lib/axios";
 
-export async function getTeachers(subject?: string) {
+export const getTeachers = async (
+  subject?: string,
+): Promise<TeacherProfile[]> => {
   const query = subject ? `?subject=${encodeURIComponent(subject)}` : "";
-  return apiClient.get<TeacherProfile[]>(
+
+  const { data } = await apiClient.get<TeacherProfile[]>(
     `${API_ENDPOINTS.teachers.list}${query}`,
   );
-}
 
-export async function getTeacherProfile(userId: string) {
-  return apiClient.get<TeacherProfile>(API_ENDPOINTS.teachers.profile(userId));
-}
-
-export const getTeacherOverview = () => {
-  return api.get("/teachers/dashboard/overview");
+  return data;
 };
 
-export async function getTeacherStudents(teacherId?: string) {
+export const getTeacherProfile = async (
+  userId: string,
+): Promise<TeacherProfile> => {
+  const { data } = await apiClient.get<TeacherProfile>(
+    API_ENDPOINTS.teachers.profile(userId),
+  );
+
+  return data;
+};
+
+export const getTeacherOverview = async () => {
+  const { data } = await apiClient.get(API_ENDPOINTS.teachers.dashboard);
+
+  return data;
+};
+
+export const getTeacherStudents = async (
+  teacherId?: string,
+): Promise<unknown[]> => {
   if (!teacherId) {
-    return { data: [] } as { data: unknown[] };
+    return [];
   }
 
-  const endpoints = [API_ENDPOINTS.teachers.studentsById(teacherId)];
+  try {
+    const { data } = await apiClient.get(
+      API_ENDPOINTS.teachers.studentsById(teacherId),
+    );
 
-  for (const endpoint of endpoints) {
-    try {
-      return await apiClient.get(endpoint);
-    } catch (error) {
-      if (!axios.isAxiosError(error) || error.response?.status !== 404) {
-        throw error;
-      }
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return [];
     }
-  }
 
-  return { data: [] } as { data: unknown[] };
-}
+    throw error;
+  }
+};

@@ -2,15 +2,23 @@ import apiClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/api";
 import type { StudentProfile } from "@/types/student";
 
-export async function createStudentProfile(payload: Partial<StudentProfile>) {
-  return apiClient.post<StudentProfile>(
-    API_ENDPOINTS.students.profile,
+export const createStudentProfile = async (
+  payload: Partial<StudentProfile>,
+): Promise<StudentProfile> => {
+  const { data } = await apiClient.post<StudentProfile>(
+    API_ENDPOINTS.students.createProfile,
     payload,
   );
-}
 
-export async function getStudentProfile(userId: string) {
-  return apiClient.get<StudentProfile>(
-    `${API_ENDPOINTS.students.profile}/${userId}`,
+  return data;
+};
+
+export const getStudentProfile = async (
+  userId: string,
+): Promise<StudentProfile> => {
+  const { data } = await apiClient.get<StudentProfile>(
+    API_ENDPOINTS.students.profile(userId),
   );
-}
+
+  return data;
+};

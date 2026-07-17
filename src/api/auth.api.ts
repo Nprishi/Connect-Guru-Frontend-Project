@@ -7,34 +7,38 @@ type AuthApiResponse = {
   data: AuthResponse;
 };
 
-export async function registerUser(
+export const registerUser = async (
   payload: RegisterPayload,
-): Promise<AuthResponse> {
+): Promise<AuthResponse> => {
   const { data } = await apiClient.post<AuthApiResponse>(
     API_ENDPOINTS.auth.register,
     payload,
   );
 
   return data.data;
-}
+};
 
-export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
+export const loginUser = async (
+  payload: LoginPayload,
+): Promise<AuthResponse> => {
   const { data } = await apiClient.post<AuthApiResponse>(
     API_ENDPOINTS.auth.login,
     payload,
   );
 
   return data.data;
-}
+};
 
-export async function logoutUser(): Promise<void> {
-  await apiClient.post(API_ENDPOINTS.auth.logout);
-}
+export const logoutUser = async () => {
+  const { data } = await apiClient.post(API_ENDPOINTS.auth.logout);
 
-export async function getProfile(): Promise<AuthResponse["user"]> {
+  return data;
+};
+
+export const getProfile = async (): Promise<AuthResponse["user"]> => {
   const { data } = await apiClient.get<AuthResponse["user"]>(
     API_ENDPOINTS.auth.profile,
   );
 
   return data;
-}
+};
