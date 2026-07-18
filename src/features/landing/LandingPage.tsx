@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ShieldCheck,
@@ -14,7 +16,6 @@ import {
   ArrowRight
 } from "lucide-react";
 
-// --- PRESERVED HIGHLIGHTS DATA (Elevated with dynamic metadata for icons/colors) ---
 const highlights = [
   {
     title: "Verified experts",
@@ -54,33 +55,37 @@ export default function LandingPage() {
         <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="absolute -left-20 -bottom-20 h-80 w-80 rounded-full bg-[#7C3AED]/30 blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-3xl space-y-6">
-          <Badge className="bg-white/15 text-white border-none px-3.5 py-1 text-[12px] font-semibold tracking-wider hover:bg-white/20 rounded-full backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 mr-1.5 inline fill-white/10" />
-            Connect Guru
-          </Badge>
+        <div className="relative z-10 max-w-6xl space-y-6 flex flex-col md:flex-row gap-6 md:gap-12 border-r-8">
+          <Image
+            src="/Landing-LOGO.png"
+            alt="Connect Guru"
+            width={500}
+            height={500}
+            className="inline-block mr-2 rounded-full border-white/20 shadow-soft"
+          />
+          <div className="relative z-10 max-w-6xl space-y-6 block">
+            <h1 className="text-[36px] md:text-[48px] font-bold tracking-tight text-white leading-[1.15]">
+              Find the right mentor and grow faster
+            </h1>
 
-          <h1 className="text-[36px] md:text-[48px] font-bold tracking-tight text-white leading-[1.15]">
-            Find the right mentor and grow faster
-          </h1>
+            <p className="max-w-2xl text-[16px] md:text-[18px] text-white/90 font-medium leading-relaxed">
+              Discover trusted teachers, book sessions, manage payments, and stay connected in one streamlined platform.
+            </p>
 
-          <p className="max-w-2xl text-[16px] md:text-[18px] text-white/90 font-medium leading-relaxed">
-            Discover trusted teachers, book sessions, manage payments, and stay connected in one streamlined platform.
-          </p>
-
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Link
-              href="/register"
-              className="inline-flex h-12 items-center justify-center rounded-[14px] bg-white px-6 text-[14px] font-semibold text-[#4F46E5] shadow-soft hover:bg-slate-50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-            >
-              Get started
-            </Link>
-            <Link
-              href="/teachers"
-              className="inline-flex h-12 items-center justify-center rounded-[14px] border border-white/30 bg-white/10 backdrop-blur-sm px-6 text-[14px] font-semibold text-white hover:bg-white/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-            >
-              Explore teachers
-            </Link>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                href="/register"
+                className="inline-flex h-12 items-center justify-center rounded-[14px] bg-white px-6 text-[14px] font-semibold text-[#4F46E5] shadow-soft hover:bg-slate-50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              >
+                Get started
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex h-12 items-center justify-center rounded-[14px] border border-white/30 bg-white/10 backdrop-blur-sm px-6 text-[14px] font-semibold text-white hover:bg-white/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              >
+                Sign In
+              </Link>
+            </div>
           </div>
         </div>
       </motion.section>
@@ -185,7 +190,7 @@ export default function LandingPage() {
                 Create account <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/packages"
+                href="/login"
                 className="inline-flex h-12 flex-1 items-center justify-center rounded-[14px] border border-border bg-card text-[14px] font-semibold text-body shadow-soft hover:bg-background transition-all hover:scale-[1.02] active:scale-[0.98] duration-200"
               >
                 View packages
@@ -195,6 +200,6 @@ export default function LandingPage() {
         </motion.div>
 
       </section>
-    </div>
+    </div >
   );
 }

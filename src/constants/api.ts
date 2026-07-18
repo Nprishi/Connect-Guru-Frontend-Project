@@ -2,6 +2,16 @@ export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/cg";
 
 export const API_ENDPOINTS = {
+  superAdmin: {
+    login: "/superadmin/t1/login",
+  },
+
+  admin: {
+    dashboard: "/admin/dashboard",
+    users: "/admin/users",
+    updateUserStatus: (userId: string) => `/admin/users/${userId}/status`,
+  },
+
   auth: {
     register: "/auth/register",
     login: "/auth/login",
@@ -13,10 +23,6 @@ export const API_ENDPOINTS = {
     changePassword: "/auth/change-password",
     verifyEmail: "/auth/verify-email",
     resendVerification: "/auth/resend-verification",
-  },
-
-  superAdmin: {
-    login: "/superadmin/t1/login",
   },
 
   users: {
@@ -67,14 +73,14 @@ export const API_ENDPOINTS = {
 
   chat: {
     conversations: "/chat/conversations",
-    messages: (conversationId: string) => `/chat/messages/${conversationId}`,
     sendMessage: "/chat/messages",
+    messages: (conversationId: string) => `/chat/messages/${conversationId}`,
   },
 
   payments: {
-    list: "/payments",
     create: "/payments",
-    status: (paymentId: string) => `/payments/${paymentId}/status`,
+    list: "/payments",
+    updateStatus: (paymentId: string) => `/payments/${paymentId}/status`,
   },
 
   analytics: {
@@ -84,23 +90,27 @@ export const API_ENDPOINTS = {
   },
 
   kyc: {
-    current: "/kyc",
     submit: "/kyc",
     upload: "/kyc/upload",
+    current: "/kyc",
     admin: "/kyc/admin",
     review: (kycId: string) => `/kyc/${kycId}/review`,
   },
 
   categories: {
-    list: "/categories",
     create: "/categories",
+    list: "/categories",
     detail: (categoryId: string) => `/categories/${categoryId}`,
+    update: (categoryId: string) => `/categories/${categoryId}`,
+    delete: (categoryId: string) => `/categories/${categoryId}`,
   },
 
   subjects: {
-    list: "/subjects",
     create: "/subjects",
+    list: "/subjects",
     detail: (subjectId: string) => `/subjects/${subjectId}`,
+    update: (subjectId: string) => `/subjects/${subjectId}`,
+    delete: (subjectId: string) => `/subjects/${subjectId}`,
   },
 
   notifications: {
@@ -112,8 +122,8 @@ export const API_ENDPOINTS = {
   },
 
   sessions: {
-    list: "/sessions",
     create: "/sessions",
+    list: "/sessions",
     student: "/sessions/student",
     teacher: "/sessions/teacher",
     start: (sessionId: string) => `/sessions/${sessionId}/start`,
@@ -122,15 +132,10 @@ export const API_ENDPOINTS = {
   },
 
   reviews: {
-    list: "/reviews",
     create: "/reviews",
+    list: "/reviews",
     teacher: (teacherId: string) => `/reviews/teacher/${teacherId}`,
-    detail: (reviewId: string) => `/reviews/${reviewId}`,
-  },
-
-  admin: {
-    dashboard: "/admin/dashboard",
-    users: "/admin/users",
-    userStatus: (userId: string) => `/admin/users/${userId}/status`,
+    update: (reviewId: string) => `/reviews/${reviewId}`,
+    delete: (reviewId: string) => `/reviews/${reviewId}`,
   },
 } as const;

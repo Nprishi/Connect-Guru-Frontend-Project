@@ -2,9 +2,10 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { GraduationCap, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { ROUTES } from "@/constants/routes";
+import Image from "next/image";
 
 const navLinks = [
   { label: "Find Teachers", href: ROUTES.teachers },
@@ -18,11 +19,16 @@ export function GuestShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link href={ROUTES.home} className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-slate-900 text-white">
-              <GraduationCap className="h-4 w-4" />
-            </div>
+        <div className="mx-8 flex max-w-7xl items-center justify-between px-2 py-1 sm:px-2 lg:px-6">
+          <Link href={ROUTES.home} className="flex items-center gap-0">
+           
+              <Image
+                src="/LOGO.png"
+                alt="Connect Guru"
+                width={180}
+                height={50}
+                className="w-32 md:w-44 lg:w-64 h-18 object-contain"
+              />
             <span className="text-lg font-semibold">Connect Guru</span>
           </Link>
 
