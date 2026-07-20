@@ -11,6 +11,7 @@ import { getPackages, getTeacherPackages } from "@/api/package.api";
 import { getCurrentStudent, getStudentDashboard } from "@/api/student.api";
 import {
   getTeachers,
+  getCurrentTeacherProfile,
   getTeacherOverview,
   getTeacherProfile,
   getTeacherStudents,
@@ -53,6 +54,18 @@ export function useTeacherQuery(userId?: string) {
     queryFn: () => getTeacherProfile(userId!),
     enabled: Boolean(userId),
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useCurrentTeacherQuery(enabled = true) {
+  return useQuery({
+    queryKey: ["teacher", "current"],
+    queryFn: getCurrentTeacherProfile,
+    enabled,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 }
 

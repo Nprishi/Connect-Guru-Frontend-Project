@@ -1,25 +1,48 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+"use client";
 
-import { getTeacherProfile } from "@/api/teacher.api";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import HireTeacherButton from "@/features/teacher/HireTeacherButton";
+import { useTeacherQuery } from "@/hooks/useQueryHooks";
 
-export default async function TeacherDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const response = await getTeacherProfile(id).catch(() => null);
-  const teacher = response?.data;
+export default function TeacherDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = params?.id ?? "";
+  const { data, isLoading, error } = useTeacherQuery(id);
 
-  if (!teacher) {
-    notFound();
+  const teacher = data?.data;
+  const teacherUser = teacher?.user;
+  const teacherProfile = teacher?.profile;
+  const initials = `${teacherUser?.firstName?.[0] ?? "T"}${teacherUser?.lastName?.[0] ?? ""}`;
+
+  if (isLoading) {
+    return (
+      <Card className="shadow-sm">
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-3">
+            <div className="h-4 w-40 rounded bg-slate-200" />
+            <div className="h-10 w-56 rounded bg-slate-200" />
+            <div className="h-4 w-72 rounded bg-slate-100" />
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
-  const teacherUser = teacher.user;
-  const teacherProfile = teacher.profile;
-  const initials = `${teacherUser?.firstName?.[0] ?? "T"}${teacherUser?.lastName?.[0] ?? ""}`;
+  if (error || !teacher) {
+    return (
+      <Card className="border-rose-200 bg-rose-50 text-rose-700 shadow-sm">
+        <CardContent className="p-6">
+          <p className="font-medium">Unable to load this teacher profile right now.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -58,7 +81,7 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <HireTeacherButton
-              teacherId={teacherUser?._id ?? id}
+              teacherId={teacherProfile?.userId ?? teacherUser?._id ?? id}
               teacherName={`${teacherUser?.firstName ?? "Teacher"} ${teacherUser?.lastName ?? ""}`.trim()}
               subject={(teacherProfile?.subjects ?? [])[0]}
               hourlyRate={teacherProfile?.hourlyRate ?? 0}

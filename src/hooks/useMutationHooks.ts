@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { loginUser, logoutUser, registerUser } from "@/api/auth.api";
 import { createBooking, updateBookingStatus } from "@/api/bookings.api";
@@ -117,14 +117,26 @@ export function useUpdateUserAvatarMutation() {
 }
 
 export function useCreateBookingMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<Booking, Error, CreateBookingPayload>({
     mutationFn: createBooking,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
   });
 }
 
 export function useUpdateBookingStatusMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<Booking, Error, { bookingId: string; payload: UpdateBookingStatusPayload }>({
     mutationFn: ({ bookingId, payload }) => updateBookingStatus(bookingId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
   });
 }
 

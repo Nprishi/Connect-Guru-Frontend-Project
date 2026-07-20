@@ -1,10 +1,12 @@
 import axios from "axios";
 
 import apiClient from "@/api/axios";
+import { searchTeachers } from "@/api/search.api";
 import { API_ENDPOINTS } from "@/constants/api";
 
 import type {
   TeacherAvailabilityPayload,
+  TeacherListItem,
   TeacherProfileResponse,
   TeacherListResponse,
   TeacherOverviewResponse,
@@ -15,11 +17,46 @@ import type { ApiResponse } from "@/types/api";
 export const getTeachers = async (
   subject?: string,
 ): Promise<TeacherListResponse> => {
-  const query = subject ? `?subject=${encodeURIComponent(subject)}` : "";
+  const params = new URLSearchParams({ page: "1", limit: "100" });
+
+  if (subject) {
+    params.set("subject", subject);
+  }
+
+  const query = params.toString() ? `?${params.toString()}` : "";
 
   const { data } = await apiClient.get<TeacherListResponse>(
     `${API_ENDPOINTS.teachers.list}${query}`,
   );
+
+  if (Array.isArray(data?.data?.teachers) && data.data.teachers.length > 0) {
+    return data;
+  }
+
+  try {
+    const searchResult = await searchTeachers({
+      q: subject ?? "",
+      page: 1,
+      limit: 100,
+    });
+
+    const teachers = Array.isArray(searchResult.items)
+      ? (searchResult.items as TeacherListItem[])
+      : [];
+
+    if (teachers.length > 0) {
+      return {
+        message: data?.message ?? "Success",
+        data: {
+          teachers,
+          page: 1,
+          limit: 100,
+        },
+      };
+    }
+  } catch {
+    return data;
+  }
 
   return data;
 };
@@ -29,6 +66,14 @@ export const getTeacherProfile = async (
 ): Promise<TeacherProfileResponse> => {
   const { data } = await apiClient.get<TeacherProfileResponse>(
     API_ENDPOINTS.teachers.publicProfile(userId),
+  );
+
+  return data;
+};
+
+export const getCurrentTeacherProfile = async (): Promise<TeacherProfileResponse> => {
+  const { data } = await apiClient.get<TeacherProfileResponse>(
+    API_ENDPOINTS.teachers.current,
   );
 
   return data;

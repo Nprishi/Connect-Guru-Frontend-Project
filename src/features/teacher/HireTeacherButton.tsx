@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -20,14 +20,17 @@ export default function HireTeacherButton({
   subject,
   hourlyRate,
 }: HireTeacherButtonProps) {
-  const router = useRouter();
   const currentUser = useAuthStore((state) => state.user);
   const createBookingMutation = useCreateBookingMutation();
+  const [message, setMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const isStudent = currentUser?.role === "student";
 
   const handleHire = () => {
     if (!teacherId || !isStudent) {
+      setMessage("Please sign in as a student to send a hire request.");
+      setIsSuccess(false);
       return;
     }
 
@@ -40,11 +43,14 @@ export default function HireTeacherButton({
       },
       {
         onSuccess: () => {
-          toast.success("Hire request successfully Sent");
-          router.push("/student/requests");
+          setIsSuccess(true);
+          setMessage("Request sent successfully. It has been added to the teacher's queue.");
+          toast.success("Hire request sent successfully.");
         },
-        onError: () => {
-          toast.error("Unable to send hire request right now.");
+        onError: (error) => {
+          setIsSuccess(false);
+          setMessage(error.message || "Unable to send hire request right now.");
+          toast.error(error.message || "Unable to send hire request right now.");
         },
       },
     );
@@ -55,8 +61,16 @@ export default function HireTeacherButton({
   }
 
   return (
-    <Button onClick={handleHire} disabled={createBookingMutation.isPending}>
-      {createBookingMutation.isPending ? "Sending..." : "Hire Teacher"}
-    </Button>
+    <div className="flex flex-col items-start gap-2">
+      <Button onClick={handleHire} disabled={createBookingMutation.isPending}>
+        {createBookingMutation.isPending ? "Sending..." : "Hire Teacher"}
+      </Button>
+
+      {message ? (
+        <p className={`text-sm font-medium ${isSuccess ? "text-emerald-700" : "text-rose-700"}`}>
+          {message}
+        </p>
+      ) : null}
+    </div>
   );
 }

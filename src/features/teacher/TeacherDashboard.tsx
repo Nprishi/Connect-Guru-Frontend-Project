@@ -26,8 +26,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { StatCard } from "@/components/dashboard/StatCard";
 import {
+  useCurrentTeacherQuery,
   useTeacherOverviewQuery,
-  useTeacherQuery,
   useTeacherStudentsQuery,
 } from "@/hooks/useQueryHooks";
 import { useUpdateTeacherAvailabilityMutation } from "@/hooks/useMutationHooks";
@@ -40,7 +40,7 @@ export default function TeacherDashboard() {
   const teacherId = user?.id;
   const [availabilityInput, setAvailabilityInput] = useState("");
 
-  const { data: teacherProfileResponse, isLoading: teacherProfileLoading } = useTeacherQuery(teacherId);
+  const { data: teacherProfileResponse, isLoading: teacherProfileLoading } = useCurrentTeacherQuery();
   const { data: overviewResponse, isLoading: overviewLoading } = useTeacherOverviewQuery();
   const { data: students = [], isLoading: studentsLoading } = useTeacherStudentsQuery();
   const updateAvailabilityMutation = useUpdateTeacherAvailabilityMutation();
@@ -53,8 +53,8 @@ export default function TeacherDashboard() {
     () => [
       {
         title: "Total Students",
-        value: `${students.length}`,
-        description: "Assigned learners",
+        value: `${overview?.totalStudents ?? students.length}`,
+        description: "Registered learners",
         icon: Users,
         accent: "blue" as const,
       },
@@ -117,7 +117,7 @@ export default function TeacherDashboard() {
 
   return (
     <div className="space-y-6">
-      <TeacherHero greetingName={teacherUser?.firstName ?? user?.firstName ?? "Teacher"} packageCount={students.length} />
+      <TeacherHero greetingName={teacherUser?.firstName ?? user?.firstName ?? "Teacher"} packageCount={overview?.totalStudents ?? students.length} />
 
       <div className="grid gap-4 xl:grid-cols-4">
         {stats.map((item) => (

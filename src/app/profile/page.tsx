@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useUpdateStudentProfileMutation, useUpdateUserAvatarMutation } from "@/hooks/useMutationHooks";
-import { useCurrentStudentQuery, useTeacherQuery } from "@/hooks/useQueryHooks";
+import { useCurrentStudentQuery, useCurrentTeacherQuery } from "@/hooks/useQueryHooks";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const parseCommaSeparated = (value: string) => value.split(",").map((item) => item.trim()).filter(Boolean);
@@ -21,7 +21,7 @@ export default function ProfilePage() {
   const isStudent = currentUser?.role === "student";
 
   const { data: studentResponse, isLoading: studentLoading, error: studentError, refetch: refetchStudent } = useCurrentStudentQuery(isStudent);
-  const { data: teacherResponse, isLoading: teacherLoading, error: teacherError } = useTeacherQuery(currentUser?.role === "teacher" ? currentUser.id : undefined);
+  const { data: teacherResponse, isLoading: teacherLoading, error: teacherError } = useCurrentTeacherQuery(!isStudent);
 
   const updateProfileMutation = useUpdateStudentProfileMutation();
   const updateAvatarMutation = useUpdateUserAvatarMutation();

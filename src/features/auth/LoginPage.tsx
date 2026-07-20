@@ -196,8 +196,7 @@ export default function LoginPage() {
           </div>
         </motion.div>
 
-        {/* Error */}
-        {error && (
+        {error ? (
           <motion.div
             initial={{
               opacity: 0,
@@ -223,9 +222,7 @@ export default function LoginPage() {
               {error}
             </p>
           </motion.div>
-        )}
-
-        {success && (
+        ) : success ? (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -235,7 +232,7 @@ export default function LoginPage() {
               {success}
             </p>
           </motion.div>
-        )}
+        ) : null}
 
         {/* Login Button */}
         <motion.div

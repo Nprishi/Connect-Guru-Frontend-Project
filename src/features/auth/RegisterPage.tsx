@@ -310,8 +310,7 @@ export default function RegisterPage() {
           </div>
         </motion.div>
 
-        {/* Error */}
-        {error && (
+        {error ? (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -319,9 +318,7 @@ export default function RegisterPage() {
           >
             <p className="text-sm font-medium text-red-600">{error}</p>
           </motion.div>
-        )}
-
-        {success && (
+        ) : success ? (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -331,7 +328,7 @@ export default function RegisterPage() {
               {success}
             </p>
           </motion.div>
-        )}
+        ) : null}
 
         {/* Submit */}
         <motion.button
