@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { clearStoredAuth, setStoredAuth } from "@/lib/auth";
 import type { AuthResponse, AuthUser } from "@/types/auth";
 
 interface AuthState {
@@ -19,21 +20,31 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshToken: undefined,
   user: null,
   ready: false,
-  setAuth: (auth) =>
+  setAuth: (auth) => {
     set({
       accessToken: auth.accessToken,
       refreshToken: auth.refreshToken,
       user: auth.user,
-    }),
+    });
+
+    setStoredAuth({
+      accessToken: auth.accessToken,
+      refreshToken: auth.refreshToken,
+      user: auth.user,
+    });
+  },
   updateUser: (updates) =>
     set((state) => ({
       user: state.user ? { ...state.user, ...updates } : null,
     })),
-  clearAuth: () =>
+  clearAuth: () => {
     set({
       accessToken: undefined,
       refreshToken: undefined,
       user: null,
-    }),
+    });
+
+    clearStoredAuth();
+  },
   setReady: (ready) => set({ ready }),
 }));

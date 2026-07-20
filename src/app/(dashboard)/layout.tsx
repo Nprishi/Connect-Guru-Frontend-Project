@@ -1,48 +1,65 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { DashboardShell } from "@/components/layout/DashboardShell";
-import { useAuthStore } from "@/store/useAuthStore";
-import { ROUTES } from "@/constants/routes";
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const user = useAuthStore((state) => state.user);
-  const ready = useAuthStore((state) => state.ready);
+import { DashboardShell } from "@/components/layout/DashboardShell";
+import { ROUTES } from "@/constants/routes";
+import { useAuthStore } from "@/store/useAuthStore";
+import type { UserRole } from "@/types/user";
+
+type DashboardLayoutProps = {
+  children: ReactNode;
+};
+
+const roleRoutes: Record<UserRole, string> = {
+  student: ROUTES.dashboard.student,
+  teacher: ROUTES.dashboard.teacher,
+  admin: ROUTES.dashboard.admin,
+  super_admin: ROUTES.dashboard.superAdmin,
+};
+
+export default function DashboardLayout({
+  children,
+}: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const user = useAuthStore((state) => state.user);
+  const ready = useAuthStore((state) => state.ready);
+
   useEffect(() => {
-    if (!ready) {
-      return;
-    }
+    if (!ready) return;
 
     if (!user) {
       router.replace(ROUTES.login);
       return;
     }
 
-    const isStudentRoute = pathname.startsWith(ROUTES.dashboard.student);
-    const isTeacherRoute = pathname.startsWith(ROUTES.dashboard.teacher);
+    const targetRoute = roleRoutes[user.role];
 
-    if (user.role === "student" && !isStudentRoute) {
-      router.replace(ROUTES.dashboard.student);
+    if (!targetRoute) {
+      router.replace(ROUTES.login);
       return;
     }
 
-    if (user.role === "teacher" && !isTeacherRoute) {
-      router.replace(ROUTES.dashboard.teacher);
-      return;
+    if (!pathname.startsWith(targetRoute)) {
+      router.replace(targetRoute);
     }
+  }, [pathname, ready, router, user]);
 
-    if (user.role !== "student" && user.role !== "teacher") {
-      router.replace(ROUTES.dashboard.student);
-      return;
-    }
-  }, [ready, router, user, pathname]);
+  if (!ready) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground">
+          Loading dashboard...
+        </p>
+      </div>
+    );
+  }
 
-  if (!ready || !user) {
+  if (!user) {
     return null;
   }
 

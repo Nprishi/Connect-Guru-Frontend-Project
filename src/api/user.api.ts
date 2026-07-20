@@ -9,3 +9,13 @@ export const getAdminUsers = async (): Promise<UserProfile[]> => {
 
   return data;
 };
+
+export const updateUserAvatar = async (formData: FormData) => {
+  const { data } = await apiClient.patch(API_ENDPOINTS.users.avatar, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return data;
+};

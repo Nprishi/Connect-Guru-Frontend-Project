@@ -23,8 +23,8 @@ export default function PackagesPage() {
 
   useEffect(() => {
     getPackages()
-      .then((res) => {
-        setPackages(res.data || []);
+      .then((items) => {
+        setPackages(items || []);
       })
       .catch(() => {
         setPackages([]);
@@ -42,7 +42,7 @@ export default function PackagesPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto py-4 font-sans text-left">
       {/* Header Card */}
-      <div className="relative overflow-hidden rounded-[24px] border border-border bg-gradient-to-r from-background via-card to-background p-8 md:p-10 shadow-soft">
+      <div className="relative overflow-hidden rounded-[24px] border border-border bg-linear-to-r from-background via-card to-background p-8 md:p-10 shadow-soft">
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
         <div className="relative z-10 space-y-2 max-w-2xl">
           <Badge className="bg-primary/10 hover:bg-primary/15 text-primary border-none px-3 py-1 text-[11px] font-bold uppercase tracking-wider rounded-full">
@@ -71,7 +71,7 @@ export default function PackagesPage() {
               key={pkg.id}
               className="group relative rounded-[24px] border border-border bg-card shadow-soft hover:shadow-glow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden"
             >
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary to-[#7C3AED] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute top-0 left-0 right-0 h-0.75 bg-linear-to-r from-primary to-[#7C3AED] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
               <div>
                 <CardHeader className="p-6 pb-4">
@@ -84,18 +84,18 @@ export default function PackagesPage() {
                       {pkg.sessions} sessions
                     </Badge>
                   </div>
-                  <CardDescription className="text-[14px] text-body mt-2.5 leading-relaxed min-h-[48px]">
+                  <CardDescription className="text-[14px] text-body mt-2.5 leading-relaxed min-h-12">
                     {pkg.description}
                   </CardDescription>
                 </CardHeader>
 
                 <div className="px-6 py-2 space-y-2.5 border-t border-border/50">
                   <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-[#10B981] flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" />
                     <span className="text-[13px] font-semibold text-heading">Flexible access anytime</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-[#10B981] flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" />
                     <span className="text-[13px] font-semibold text-heading">1-on-1 expert matching</span>
                   </div>
                 </div>

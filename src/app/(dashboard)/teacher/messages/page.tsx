@@ -1,8 +1,10 @@
+import ConversationPanel from "@/features/chat/ConversationPanel";
+
 export default function TeacherMessagesPage() {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h1 className="text-2xl font-semibold text-slate-900">Messages</h1>
-      <p className="mt-2 text-slate-600">See student conversations and message threads here.</p>
-    </div>
+    <ConversationPanel
+      title="Messages"
+      description="Review accepted hire requests and continue the conversation with students."
+    />
   );
 }

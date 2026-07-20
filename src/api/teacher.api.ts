@@ -2,14 +2,22 @@ import axios from "axios";
 
 import apiClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/api";
-import type { TeacherProfile } from "@/types/teacher";
+
+import type {
+  TeacherAvailabilityPayload,
+  TeacherProfileResponse,
+  TeacherListResponse,
+  TeacherOverviewResponse,
+  TeacherStudentsResponse,
+} from "@/types/teacher";
+import type { ApiResponse } from "@/types/api";
 
 export const getTeachers = async (
   subject?: string,
-): Promise<TeacherProfile[]> => {
+): Promise<TeacherListResponse> => {
   const query = subject ? `?subject=${encodeURIComponent(subject)}` : "";
 
-  const { data } = await apiClient.get<TeacherProfile[]>(
+  const { data } = await apiClient.get<TeacherListResponse>(
     `${API_ENDPOINTS.teachers.list}${query}`,
   );
 
@@ -18,33 +26,29 @@ export const getTeachers = async (
 
 export const getTeacherProfile = async (
   userId: string,
-): Promise<TeacherProfile> => {
-  const { data } = await apiClient.get<TeacherProfile>(
-    API_ENDPOINTS.teachers.profile(userId),
+): Promise<TeacherProfileResponse> => {
+  const { data } = await apiClient.get<TeacherProfileResponse>(
+    API_ENDPOINTS.teachers.publicProfile(userId),
   );
 
   return data;
 };
 
-export const getTeacherOverview = async () => {
-  const { data } = await apiClient.get(API_ENDPOINTS.teachers.dashboard);
+export const getTeacherOverview = async (): Promise<TeacherOverviewResponse> => {
+  const { data } = await apiClient.get<TeacherOverviewResponse>(
+    API_ENDPOINTS.teachers.dashboard,
+  );
 
   return data;
 };
 
-export const getTeacherStudents = async (
-  teacherId?: string,
-): Promise<unknown[]> => {
-  if (!teacherId) {
-    return [];
-  }
-
+export const getTeacherStudents = async (): Promise<TeacherStudentsResponse["data"]> => {
   try {
-    const { data } = await apiClient.get(
-      API_ENDPOINTS.teachers.studentsById(teacherId),
+    const { data } = await apiClient.get<TeacherStudentsResponse>(
+      API_ENDPOINTS.teachers.students,
     );
 
-    return data;
+    return data.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       return [];
@@ -52,4 +56,15 @@ export const getTeacherStudents = async (
 
     throw error;
   }
+};
+
+export const updateTeacherAvailability = async (
+  payload: TeacherAvailabilityPayload,
+): Promise<ApiResponse<TeacherAvailabilityPayload>> => {
+  const { data } = await apiClient.patch<ApiResponse<TeacherAvailabilityPayload>>(
+    API_ENDPOINTS.teachers.availability,
+    payload,
+  );
+
+  return data;
 };

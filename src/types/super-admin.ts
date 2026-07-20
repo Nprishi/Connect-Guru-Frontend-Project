@@ -7,7 +7,7 @@ export interface SuperAdminLoginPayload {
 export interface SuperAdmin {
   id?: string;
   email: string;
-  role: "SUPER_ADMIN";
+  role: "super_admin";
 }
 
 export interface SuperAdminAuthResponse {

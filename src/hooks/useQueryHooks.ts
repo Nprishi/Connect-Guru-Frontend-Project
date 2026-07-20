@@ -1,119 +1,115 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useAuthStore";
-import {
-  loginUser,
-  logoutUser,
-  registerUser,
-  getProfile,
-} from "@/api/auth.api";
+import { useQuery } from "@tanstack/react-query";
+
+import { getProfile } from "@/api/auth.api";
+import { getAdminDashboard } from "@/api/admin.api";
+import { getBookings } from "@/api/bookings.api";
+import { getConversations, getMessages } from "@/api/chat.api";
+import { getNotifications } from "@/api/notification.api";
 import { getPackages, getTeacherPackages } from "@/api/package.api";
+import { getCurrentStudent, getStudentDashboard } from "@/api/student.api";
 import {
   getTeachers,
-  getTeacherProfile,
   getTeacherOverview,
+  getTeacherProfile,
+  getTeacherStudents,
 } from "@/api/teacher.api";
-import { getNotifications } from "@/api/notification.api";
-import { getAdminDashboard } from "@/api/admin.api";
-import type { AuthResponse, LoginPayload, RegisterPayload } from "@/types/auth";
-
-export function useAuthActions() {
-  const setAuth = useAuthStore((state) => state.setAuth);
-  const clearAuth = useAuthStore((state) => state.clearAuth);
-  const router = useRouter();
-
-  const loginMutation = useMutation<AuthResponse, Error, LoginPayload>({
-    mutationFn: loginUser,
-    onSuccess: (data) => {
-      setAuth(data);
-      const role = data?.user?.role;
-      if (role === "teacher") {
-        router.replace("/teacher");
-        console.log(localStorage.getItem("auth"));
-      } else {
-        router.replace("/student");
-        console.log(localStorage.getItem("auth"));
-      }
-    },
-  });
-
-  const registerMutation = useMutation<AuthResponse, Error, RegisterPayload>({
-    mutationFn: registerUser,
-    onSuccess: (data) => {
-      setAuth(data);
-      const role = data?.user?.role;
-      if (role === "teacher") {
-        router.replace("/teacher");
-      } else {
-        router.replace("/student");
-      }
-    },
-  });
-
-  const logoutMutation = useMutation<void, Error, void>({
-    mutationFn: logoutUser,
-    onSuccess: () => {
-      clearAuth();
-      router.replace("/login");
-      console.log(localStorage.getItem("auth"));
-    },
-  });
-
-  return { loginMutation, registerMutation, logoutMutation };
-}
 
 export function useProfileQuery() {
   return useQuery({
     queryKey: ["profile"],
-    queryFn: () => getProfile(),
+    queryFn: getProfile,
     staleTime: 1000 * 60 * 5,
   });
 }
 
-export function useTeachersQuery(subject?: string) {
+export function useCurrentStudentQuery(enabled = true) {
   return useQuery({
-    queryKey: ["teachers", subject ?? "all"],
-    queryFn: async () => {
-      const response = await getTeachers(subject);
-      const result = response.data as unknown;
-
-      if (Array.isArray(result)) {
-        return result;
-      }
-
-      const nested = (result as any)?.data;
-      return Array.isArray(nested) ? nested : [];
-    },
+    queryKey: ["student", "current"],
+    queryFn: getCurrentStudent,
+    enabled,
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useStudentDashboardQuery() {
+  return useQuery({
+    queryKey: ["student", "dashboard"],
+    queryFn: getStudentDashboard,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 }
 
 export function useTeacherQuery(userId?: string) {
   return useQuery({
     queryKey: ["teacher", userId],
-    queryFn: () => getTeacherProfile(userId!).then((res) => res.data),
+    queryFn: () => getTeacherProfile(userId!),
     enabled: Boolean(userId),
     staleTime: 1000 * 60 * 5,
   });
 }
 
-export function useTeacherOverviewQuery(teacherId?: string) {
+export function useTeachersQuery(subject?: string) {
   return useQuery({
-    queryKey: ["teacher-overview", teacherId],
-    queryFn: () => getTeacherOverview().then((res) => res.data),
-    enabled: Boolean(teacherId),
+    queryKey: ["teachers", subject],
+    queryFn: () => getTeachers(subject),
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
 
+export function useTeacherOverviewQuery() {
+  return useQuery({
+    queryKey: ["teacher", "dashboard"],
+    queryFn: getTeacherOverview,
     staleTime: 1000 * 60 * 5,
   });
 }
 
-export function useNotificationsQuery() {
+export function useTeacherStudentsQuery() {
   return useQuery({
-    queryKey: ["notifications"],
-    queryFn: () => getNotifications().then((res) => res.data),
+    queryKey: ["teacher", "students"],
+    queryFn: getTeacherStudents,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useBookingsQuery() {
+  return useQuery({
+    queryKey: ["bookings"],
+    queryFn: getBookings,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useConversationsQuery() {
+  return useQuery({
+    queryKey: ["chat", "conversations"],
+    queryFn: getConversations,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useMessagesQuery(conversationId?: string) {
+  return useQuery({
+    queryKey: ["chat", "messages", conversationId],
+    queryFn: () => getMessages(conversationId!),
+    enabled: Boolean(conversationId),
     staleTime: 1000 * 60 * 5,
   });
 }
@@ -121,24 +117,35 @@ export function useNotificationsQuery() {
 export function usePackagesQuery() {
   return useQuery({
     queryKey: ["packages"],
-    queryFn: () => getPackages().then((res) => res.data),
+    queryFn: getPackages,
     staleTime: 1000 * 60 * 5,
   });
 }
 
 export function useTeacherPackagesQuery(teacherId?: string) {
   return useQuery({
-    queryKey: ["teacherPackages", teacherId],
-    queryFn: () => getTeacherPackages(teacherId!).then((res) => res.data),
+    queryKey: ["teacher-packages", teacherId],
+    queryFn: () => getTeacherPackages(teacherId!),
     enabled: Boolean(teacherId),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useNotificationsQuery() {
+  return useQuery({
+    queryKey: ["notifications"],
+    queryFn: getNotifications,
     staleTime: 1000 * 60 * 5,
   });
 }
 
 export function useAdminDashboardQuery() {
   return useQuery({
-    queryKey: ["admin", "dashboard"],
-    queryFn: () => getAdminDashboard().then((res) => res.data),
+    queryKey: ["admin-dashboard"],
+    queryFn: getAdminDashboard,
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 }

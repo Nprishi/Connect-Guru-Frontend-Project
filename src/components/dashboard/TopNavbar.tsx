@@ -103,7 +103,7 @@ export function TopNavbar({
           left-0
           h-px
           w-full
-          bg-gradient-to-r
+          bg-linear-to-r
           from-transparent
           via-slate-300
           to-transparent
@@ -126,7 +126,7 @@ export function TopNavbar({
 
           md:px-8
 
-          lg:h-[72px]
+          lg:h-18
         "
       >
 

@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export type UserRole = "student" | "teacher";
+import type { Gender, UserRole } from "@/types/user";
+
+export type RegisterRole = "student" | "teacher";
 
 export interface LoginPayload {
   email: string;
@@ -11,20 +12,23 @@ export interface RegisterPayload {
   lastName: string;
   email: string;
   password: string;
-  role: UserRole;
+  role: RegisterRole;
   phone: string;
-  gender: string;
+  gender: Gender;
 }
 
 export interface AuthUser {
   id: string;
+
   firstName: string;
   lastName: string;
+
   email: string;
   role: UserRole;
+
   phone?: string;
-  gender?: string;
-  avatar?: string;
+  gender?: Gender;
+  avatar?: string | null;
 }
 
 export interface AuthResponse {
@@ -32,4 +36,16 @@ export interface AuthResponse {
   refreshToken: string;
   user: AuthUser;
   message?: string;
+}
+
+export interface ApiResponse<T = unknown> {
+  success?: boolean;
+  message: string;
+  data: T;
+}
+
+export interface ValidationErrorResponse {
+  success: false;
+  message: string;
+  errors?: Record<string, string[]>;
 }

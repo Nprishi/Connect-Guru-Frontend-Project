@@ -1,557 +1,406 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState, useRef } from "react"; // Fix: useRef थपियो
-import { useRouter } from "next/navigation";
-import { getOwnProfile } from "@/api/profile.api";
-import { getTeacherProfile } from "@/api/teacher.api";
-import { getStudentProfile } from "@/api/student.api";
-import { useAuthStore } from "@/store/useAuthStore";
+import { BookOpen, ImagePlus, Mail, Phone, Save, Shield, UserRound } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Select } from "@/components/ui/select";
-import type { UserProfile } from "@/types/user";
-import {
-  User,
-  Mail,
-  Shield,
-  RefreshCw,
-  Save,
-  Edit3,
-  X,
-  ArrowLeft,
-  Phone,
-  Contact2,
-  Activity,
-  DollarSign,
-  GraduationCap,
-  Briefcase,
-  BookOpen,
-  CalendarDays,
-  FileText,
-  Target,
-  Sparkles,
-  Camera // Fix: क्यामेरा आइकन थपियो
-} from "lucide-react";
+import { useUpdateStudentProfileMutation, useUpdateUserAvatarMutation } from "@/hooks/useMutationHooks";
+import { useCurrentStudentQuery, useTeacherQuery } from "@/hooks/useQueryHooks";
+import { useAuthStore } from "@/store/useAuthStore";
+
+const parseCommaSeparated = (value: string) => value.split(",").map((item) => item.trim()).filter(Boolean);
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const updateUser = useAuthStore((state) => state.updateUser);
-  const fileInputRef = useRef<HTMLInputElement>(null); // Fix: फाइल इनपुट रेफरेन्स
+  const currentUser = useAuthStore((state) => state.user);
+  const isStudent = currentUser?.role === "student";
 
-  // 1. Core 'users' collection states
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [firstName, setFirstName] = useState<string>("");
-  const [lastName, setLastName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [gender, setGender] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
-  const [avatar, setAvatar] = useState<string>(""); // Fix: एभाटार स्टेट
+  const { data: studentResponse, isLoading: studentLoading, error: studentError, refetch: refetchStudent } = useCurrentStudentQuery(isStudent);
+  const { data: teacherResponse, isLoading: teacherLoading, error: teacherError } = useTeacherQuery(currentUser?.role === "teacher" ? currentUser.id : undefined);
 
-  // 2. 'teacherprofiles' collection states
-  const [subjects, setSubjects] = useState<string[]>([]);
-  const [education, setEducation] = useState<string[]>([]);
-  const [experience, setExperience] = useState<string[]>([]);
-  const [availability, setAvailability] = useState<string[]>([]);
-  const [hourlyRate, setHourlyRate] = useState<number>(0);
-  const [teacherBio, setTeacherBio] = useState<string>("");
+  const updateProfileMutation = useUpdateStudentProfileMutation();
+  const updateAvatarMutation = useUpdateUserAvatarMutation();
 
-  // 3. 'studentprofiles' collection states
-  const [preferredSubjects, setPreferredSubjects] = useState<string[]>([]);
-  const [learningGoals, setLearningGoals] = useState<string[]>([]);
-  const [interests, setInterests] = useState<string[]>([]);
-  const [studentBio, setStudentBio] = useState<string>("");
+  const studentProfile = studentResponse?.data?.profile;
+  const studentUser = studentResponse?.data?.user;
+  const teacherProfile = teacherResponse?.data?.profile;
+  const teacherUser = teacherResponse?.data?.user;
 
-  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const initials = `${(isStudent ? studentUser?.firstName : teacherUser?.firstName)?.[0] ?? "U"}${(isStudent ? studentUser?.lastName : teacherUser?.lastName)?.[0] ?? ""}`;
+  const fullName = `${isStudent ? studentUser?.firstName : teacherUser?.firstName ?? ""} ${isStudent ? studentUser?.lastName : teacherUser?.lastName ?? ""}`.trim() || "Profile";
+  const avatarUrl = isStudent ? studentUser?.avatar ?? undefined : teacherUser?.avatar ?? undefined;
+
+  const [bio, setBio] = useState("");
+  const [preferredSubjects, setPreferredSubjects] = useState("");
+  const [learningGoals, setLearningGoals] = useState("");
+  const [interests, setInterests] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [zoom, setZoom] = useState(1.2);
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    async function fetchUserData() {
-      try {
-        let currentUser = user;
-
-        if (!currentUser) {
-          const response = await getOwnProfile();
-          currentUser = response.data;
-        }
-
-        if (currentUser) {
-          setProfile(currentUser);
-          setFirstName(currentUser.firstName ?? "");
-          setLastName(currentUser.lastName ?? "");
-          setEmail(currentUser.email ?? "");
-          setGender(currentUser.gender ?? "other");
-          setPhone(currentUser.phone ?? "");
-          setAvatar(currentUser.avatar ?? "");
-
-          const role = currentUser.role?.toLowerCase();
-
-          if (role === "teacher" && currentUser.id) {
-            try {
-              const teacherRes = await getTeacherProfile(currentUser.id);
-              const teacherData = teacherRes.data;
-              if (teacherData) {
-                setSubjects(teacherData.subjects ?? []);
-                setEducation(teacherData.education ?? []);
-                setExperience(teacherData.experience ?? []);
-                setAvailability(teacherData.availability ?? []);
-                setHourlyRate(teacherData.hourlyRate ?? 0);
-                setTeacherBio(teacherData.bio ?? "");
-              }
-            } catch (err) {
-              console.error("Could not fetch teacher profile details:", err);
-            }
-          } else if (role === "student" && currentUser.id) {
-            try {
-              const studentRes = await getStudentProfile(currentUser.id);
-              const studentData = studentRes.data;
-              if (studentData) {
-                setPreferredSubjects(studentData.preferredSubjects ?? []);
-                setLearningGoals(studentData.learningGoals ?? []);
-                setInterests(studentData.interests ?? []);
-                setStudentBio(studentData.bio ?? "");
-              }
-            } catch (err) {
-              console.error("Could not fetch student profile details:", err);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error loading account data:", error);
-        setProfile(null);
-      }
+    if (!studentProfile) {
+      return;
     }
 
-    fetchUserData();
-  }, [user]);
+    setBio(studentProfile.bio ?? "");
+    setPreferredSubjects((studentProfile.preferredSubjects ?? []).join(", "));
+    setLearningGoals((studentProfile.learningGoals ?? []).join(", "));
+    setInterests((studentProfile.interests ?? []).join(", "));
+  }, [studentProfile]);
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  if (studentLoading || teacherLoading) {
+    return (
+      <div className="space-y-4">
+        <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <CardContent className="p-6">
+            <div className="animate-pulse space-y-3">
+              <div className="h-16 w-16 rounded-full bg-slate-200" />
+              <div className="h-4 w-40 rounded bg-slate-200" />
+              <div className="h-3 w-60 rounded bg-slate-100" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isStudent) {
+    if (studentError || !studentProfile || !studentUser) {
+      return (
+        <Card className="rounded-3xl border border-rose-200 bg-rose-50 text-rose-700 shadow-sm">
+          <CardContent className="p-6">Unable to load your profile right now.</CardContent>
+        </Card>
+      );
+    }
+  } else if (teacherError || !teacherProfile || !teacherUser) {
+    return (
+      <Card className="rounded-3xl border border-rose-200 bg-rose-50 text-rose-700 shadow-sm">
+        <CardContent className="p-6">Unable to load your profile right now.</CardContent>
+      </Card>
+    );
+  }
+
+  const handleAvatarPick = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(reader.result as string);
-      };
-      reader.readAsDataURL(file);
 
+    if (!file) {
+      return;
     }
+
+    setAvatarFile(file);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAvatarPreview(String(reader.result));
+    };
+    reader.readAsDataURL(file);
   };
 
-  function handleSave() {
-    if (!profile) return;
+  const cropAvatarAndUpload = async () => {
+    if (!avatarFile || !avatarPreview) {
+      return;
+    }
 
-    const updatedProfile = {
-      ...profile,
-      firstName,
-      lastName,
-      email,
-      gender,
-      phone,
-      avatar,
-    };
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = avatarPreview;
+    });
 
-    setProfile(updatedProfile);
-    updateUser(updatedProfile);
-    setIsEditing(false);
-  }
+    const canvas = document.createElement("canvas");
+    const cropSize = 512;
+    canvas.width = cropSize;
+    canvas.height = cropSize;
 
-  function handleReset() {
-    if (!profile) return;
-    setFirstName(profile.firstName ?? "");
-    setLastName(profile.lastName ?? "");
-    setEmail(profile.email ?? "");
-    setGender(profile.gender ?? "other");
-    setPhone(profile.phone ?? "");
-    setAvatar(profile.avatar ?? "");
-  }
+    const context = canvas.getContext("2d");
 
-  function handleCancel() {
-    handleReset();
-    setIsEditing(false);
-  }
+    if (!context) {
+      toast.error("Unable to process the image on this device.");
+      return;
+    }
 
-  const initials = profile ? `${profile.firstName?.[0] ?? ""}${profile.lastName?.[0] ?? ""}` : "U";
-  const fullName = profile ? `${profile.firstName} ${profile.lastName}` : "Your profile";
-  const roleLabel = profile?.role ?? "Member";
-  const statusLabel = profile?.status ?? "inactive";
+    const targetWidth = image.width;
+    const targetHeight = image.height;
+    const minSource = Math.min(targetWidth, targetHeight);
+    const sourceX = Math.max(0, (targetWidth - minSource) / 2 + offsetX * (targetWidth / 240));
+    const sourceY = Math.max(0, (targetHeight - minSource) / 2 + offsetY * (targetHeight / 240));
+    const sourceSize = minSource / zoom;
 
-  const isTeacher = roleLabel.toLowerCase() === "teacher";
-  const isStudent = roleLabel.toLowerCase() === "student";
+    context.clearRect(0, 0, cropSize, cropSize);
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      sourceSize,
+      sourceSize,
+      0,
+      0,
+      cropSize,
+      cropSize,
+    );
 
-  const inputStyles = `h-12 w-full rounded-[14px] border px-4 text-[15px] transition-all outline-none shadow-none mt-2 ${isEditing
-    ? "border-border bg-card text-body focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary focus-visible:outline-none"
-    : "border-border/40 bg-muted/30 text-muted-foreground cursor-not-allowed select-none"
-    }`;
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+
+    if (!blob) {
+      toast.error("Unable to generate the cropped avatar.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", blob, avatarFile.name || "avatar.jpg");
+
+    updateAvatarMutation.mutate(formData, {
+      onSuccess: () => {
+        toast.success("Profile picture updated successfully.");
+        setAvatarPreview(null);
+        setAvatarFile(null);
+        refetchStudent();
+      },
+      onError: () => {
+        toast.error("Unable to save the profile picture right now.");
+      },
+    });
+  };
+
+  const handleSave = () => {
+    updateProfileMutation.mutate(
+      {
+        bio,
+        preferredSubjects: parseCommaSeparated(preferredSubjects),
+        learningGoals: parseCommaSeparated(learningGoals),
+        interests: parseCommaSeparated(interests),
+      },
+      {
+        onSuccess: () => {
+          toast.success("Profile updated successfully.");
+          refetchStudent();
+        },
+        onError: () => {
+          toast.error("Unable to update the profile right now.");
+        },
+      },
+    );
+  };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto py-6 px-4 font-sans text-left">
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="h-10 rounded-[14px] gap-2 px-3 text-[14px] font-semibold text-body hover:bg-muted"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-      </div>
-
-      <Card className="rounded-[28px] border border-border bg-card shadow-md overflow-hidden">
-        <div className="h-3 w-full bg-gradient-to-r from-primary via-[#7C3AED] to-primary/60" />
-
-        <CardHeader className="p-8 md:p-10 border-b border-border/40 bg-muted/10">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center justify-between">
-
-            <div className="flex items-center gap-6">
-              <div className="relative group">
-                <Avatar className="h-24 w-24 border-4 border-background rounded-full ring-4 ring-primary/10 shadow-sm overflow-hidden">
-                  <AvatarImage src={avatar || undefined} alt={fullName} className="object-cover" />
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-[32px] uppercase">
-                    {initials}
-                  </AvatarFallback>
+    <div className="space-y-6">
+      <Card className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-200 bg-slate-50 p-6 md:p-8">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <Avatar className="h-20 w-20 border-4 border-white shadow-sm">
+                  <AvatarImage src={avatarUrl} alt={fullName} className="object-cover" />
+                  <AvatarFallback className="bg-violet-100 text-violet-700 text-lg font-semibold">{initials}</AvatarFallback>
                 </Avatar>
-
-                {isEditing && (
+                {isStudent ? (
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-violet-600 text-white shadow-sm"
                   >
-                    <Camera className="h-6 w-6" />
+                    <ImagePlus className="h-4 w-4" />
                   </button>
-                )}
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleAvatarChange}
-                  accept="image/*"
-                  className="hidden"
-                />
+                ) : null}
               </div>
-
-              <div className="space-y-2.5">
-                <CardTitle className="text-[28px] font-extrabold text-heading tracking-tight leading-tight">
-                  {fullName}
-                </CardTitle>
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <Badge className="bg-primary/10 text-primary border-none px-3.5 py-1 text-[12px] font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5">
-                    <Shield className="h-3.5 w-3.5" />
-                    {roleLabel}
-                  </Badge>
-                  <Badge className={`border-none px-3.5 py-1 text-[12px] font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5 ${statusLabel === "active"
-                    ? "bg-emerald-500/10 text-emerald-500"
-                    : "bg-amber-500/10 text-amber-500"
-                    }`}>
-                    <Activity className="h-3.5 w-3.5" />
-                    {statusLabel}
-                  </Badge>
-                </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-slate-900">{fullName}</CardTitle>
+                <CardDescription className="text-sm text-slate-600">{isStudent ? "Edit your own student profile and crop the new avatar before saving." : "Teacher profile details are loaded from the backend profile contract."}</CardDescription>
               </div>
             </div>
-
-            <div className="flex flex-wrap gap-3">
-              {!isEditing ? (
-                <Button
-                  onClick={() => setIsEditing(true)}
-                  className="h-11 rounded-[14px] bg-primary hover:bg-primary-hover text-[14px] font-semibold text-white px-6 shadow-sm flex items-center gap-2"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  Edit Profile
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    onClick={handleSave}
-                    className="h-11 rounded-[14px] bg-primary hover:bg-primary-hover text-[14px] font-semibold text-white px-6 shadow-sm flex items-center gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    Save
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleReset}
-                    className="h-11 rounded-[14px] border border-border bg-card text-[14px] font-semibold text-body px-5 flex items-center gap-2"
-                  >
-                    <RefreshCw className="h-4 w-4 text-muted" />
-                    Reset
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={handleCancel}
-                    className="h-11 rounded-[14px] text-[14px] font-semibold text-muted hover:text-body hover:bg-muted px-5 flex items-center gap-2"
-                  >
-                    <X className="h-4 w-4" />
-                    Cancel
-                  </Button>
-                </>
-              )}
-            </div>
+            <Badge className="w-fit border-none bg-violet-100 text-violet-700">
+              <Shield className="mr-1 h-3.5 w-3.5" />
+              {currentUser?.role ?? "user"}
+            </Badge>
           </div>
         </CardHeader>
 
-        <CardContent className="p-8 md:p-10 space-y-10">
+        <CardContent className="p-6 md:p-8">
+          {isStudent ? (
+            <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <Mail className="h-4 w-4 text-slate-400" />
+                  <span>{studentUser?.email ?? "Email unavailable"}</span>
+                </div>
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <Phone className="h-4 w-4 text-slate-400" />
+                  <span>{studentUser?.phone ?? "Phone not shared"}</span>
+                </div>
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <UserRound className="h-4 w-4 text-slate-400" />
+                  <span>{studentUser?.gender ?? "Gender not provided"}</span>
+                </div>
 
-          <div className="space-y-4">
-            <h3 className="text-[16px] font-bold text-primary/80 uppercase tracking-wider">
-              Account Information
-            </h3>
-            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
-              <div className="space-y-1.5">
-                <Label className="text-[14px] font-semibold text-heading flex items-center gap-2 whitespace-nowrap">
-                  <User className="h-4 w-4 text-muted" />
-                  <span>First Name</span>
-                </Label>
-                <Input
-                  placeholder="First name"
-                  value={firstName}
-                  disabled={!isEditing}
-                  onChange={(event) => setFirstName(event.target.value)}
-                  className={inputStyles}
-                />
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Crop avatar before upload</p>
+                  <div className="mt-3 flex flex-col gap-3">
+                    <div className="mx-auto flex h-56 w-56 items-center justify-center overflow-hidden rounded-3xl border border-slate-200 bg-white">
+                      {avatarPreview ? (
+                        <img
+                          src={avatarPreview}
+                          alt="Avatar preview"
+                          className="h-full w-full object-cover"
+                          style={{ transform: `scale(${zoom}) translate(${offsetX}px, ${offsetY}px)` }}
+                        />
+                      ) : (
+                        <span className="text-sm text-slate-500">No new image selected</span>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 text-sm text-slate-600">
+                      <label className="flex items-center justify-between gap-3">
+                        <span>Zoom</span>
+                        <input type="range" min="1" max="2.4" step="0.05" value={zoom} onChange={(event) => setZoom(Number(event.target.value))} className="w-40" />
+                      </label>
+                      <label className="flex items-center justify-between gap-3">
+                        <span>Horizontal shift</span>
+                        <input type="range" min="-60" max="60" step="1" value={offsetX} onChange={(event) => setOffsetX(Number(event.target.value))} className="w-40" />
+                      </label>
+                      <label className="flex items-center justify-between gap-3">
+                        <span>Vertical shift</span>
+                        <input type="range" min="-60" max="60" step="1" value={offsetY} onChange={(event) => setOffsetY(Number(event.target.value))} className="w-40" />
+                      </label>
+                    </div>
+
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
+                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                      Select Image
+                    </Button>
+                    {avatarPreview ? (
+                      <Button type="button" onClick={cropAvatarAndUpload} disabled={updateAvatarMutation.isPending}>
+                        {updateAvatarMutation.isPending ? "Saving Avatar..." : "Save Avatar"}
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-[14px] font-semibold text-heading flex items-center gap-2 whitespace-nowrap">
-                  <User className="h-4 w-4 text-muted" />
-                  <span>Last Name</span>
-                </Label>
-                <Input
-                  placeholder="Last name"
-                  value={lastName}
-                  disabled={!isEditing}
-                  onChange={(event) => setLastName(event.target.value)}
-                  className={inputStyles}
-                />
-              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs uppercase tracking-[0.24em] text-slate-400">Bio</label>
+                  <textarea value={bio} onChange={(event) => setBio(event.target.value)} className="mt-2 min-h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-500" />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-[14px] font-semibold text-heading flex items-center gap-2 whitespace-nowrap">
-                  <Phone className="h-4 w-4 text-muted" />
-                  <span>Phone Number</span>
-                </Label>
-                <Input
-                  type="tel"
-                  placeholder="Phone number"
-                  value={phone}
-                  disabled={!isEditing}
-                  onChange={(event) => setPhone(event.target.value)}
-                  className={inputStyles}
-                />
-              </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.24em] text-slate-400">Preferred Subjects</label>
+                    <Input className="mt-2" value={preferredSubjects} onChange={(event) => setPreferredSubjects(event.target.value)} placeholder="Math, Physics, English" />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.24em] text-slate-400">Learning Goals</label>
+                    <Input className="mt-2" value={learningGoals} onChange={(event) => setLearningGoals(event.target.value)} placeholder="Improve algebra, exam prep" />
+                  </div>
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-[14px] font-semibold text-heading flex items-center gap-2 whitespace-nowrap">
-                  <Contact2 className="h-4 w-4 text-muted" />
-                  <span>Gender</span>
-                </Label>
-                <Select
-                  value={gender}
-                  disabled={!isEditing}
-                  onChange={(event) => setGender(event.target.value)}
-                  className={inputStyles}
-                >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </Select>
-              </div>
+                <div>
+                  <label className="text-xs uppercase tracking-[0.24em] text-slate-400">Interests</label>
+                  <Input className="mt-2" value={interests} onChange={(event) => setInterests(event.target.value)} placeholder="Reading, coding, research" />
+                </div>
 
-              <div className="space-y-1.5 md:col-span-4">
-                <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted" />
-                  <span>Email Address</span>
-                </Label>
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  disabled={true}
-                  className="h-12 w-full max-w-md rounded-[14px] border border-border/40 bg-muted/30 text-muted-foreground cursor-not-allowed select-none mt-2 px-4"
-                />
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={handleSave} disabled={updateProfileMutation.isPending}>
+                    <Save className="mr-2 h-4 w-4" />
+                    {updateProfileMutation.isPending ? "Saving Profile..." : "Save Profile"}
+                  </Button>
+                </div>
               </div>
             </div>
+          ) : (
+            <div className="space-y-5">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <span className="block text-xs uppercase tracking-[0.24em] text-slate-400">Email</span>
+                  <span className="mt-1 block">{teacherUser?.email ?? "Email unavailable"}</span>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <span className="block text-xs uppercase tracking-[0.24em] text-slate-400">Phone</span>
+                  <span className="mt-1 block">{teacherUser?.phone ?? "Phone not shared"}</span>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <span className="block text-xs uppercase tracking-[0.24em] text-slate-400">Gender</span>
+                  <span className="mt-1 block">{teacherUser?.gender ?? "Gender not provided"}</span>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <span className="block text-xs uppercase tracking-[0.24em] text-slate-400">Hourly Rate</span>
+                  <span className="mt-1 block">${teacherProfile?.hourlyRate ?? 0}/hr</span>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Bio</p>
+                <p className="mt-2 text-sm text-slate-700">{teacherProfile?.bio || "No bio available."}</p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Subjects</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {(teacherProfile?.subjects ?? []).map((subject) => (
+                      <Badge key={subject} variant="outline">{subject}</Badge>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Availability</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {(teacherProfile?.availability ?? []).map((slot) => (
+                      <Badge key={slot} variant="secondary">{slot}</Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Separator className="my-6" />
+
+          {isStudent ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Preferred Subjects</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(studentProfile?.preferredSubjects ?? []).map((subject) => (
+                    <Badge key={subject} variant="outline">{subject}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Learning Goals</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(studentProfile?.learningGoals ?? []).map((goal) => (
+                    <Badge key={goal} variant="outline">{goal}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Interests</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(studentProfile?.interests ?? []).map((interest) => (
+                    <Badge key={interest} variant="secondary">{interest}</Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+            <div className="flex items-center gap-2 font-semibold text-slate-900">
+              <BookOpen className="h-4 w-4 text-violet-600" />
+              {isStudent ? "Your profile is now editable from the existing backend-backed student contract." : "Your teacher profile is loaded from the backend profile contract."}
+            </div>
+            <p className="mt-2">{isStudent ? "You can update your bio, subjects, goals, interests, and crop a new avatar before uploading and saving." : "Your profile details are surfaced directly from the teacher backend response."}</p>
           </div>
-
-          {isTeacher && (
-            <>
-              <Separator className="bg-border/60" />
-              <div className="space-y-6">
-                <h3 className="text-[18px] font-bold text-heading tracking-tight flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5 text-primary" />
-                  Teacher Profile Details
-                </h3>
-
-                <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2 whitespace-nowrap">
-                      <DollarSign className="h-4 w-4 text-muted" />
-                      <span>Hourly Rate ($)</span>
-                    </Label>
-                    <Input
-                      type="number"
-                      placeholder="Hourly Rate"
-                      value={hourlyRate}
-                      disabled={!isEditing}
-                      onChange={(event) => setHourlyRate(Number(event.target.value))}
-                      className={inputStyles}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 md:col-span-3">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                      <BookOpen className="h-4 w-4 text-muted" />
-                      <span>Subjects Taught</span>
-                    </Label>
-                    <Input
-                      placeholder="e.g. Math, Physics (comma separated)"
-                      value={subjects.join(", ")}
-                      disabled={!isEditing}
-                      onChange={(event) => setSubjects(event.target.value.split(",").map((s) => s.trim()))}
-                      className={inputStyles}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 md:col-span-2">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                      <GraduationCap className="h-4 w-4 text-muted" />
-                      <span>Education / Degrees</span>
-                    </Label>
-                    <Input
-                      placeholder="e.g. BSc Mathematics (comma separated)"
-                      value={education.join(", ")}
-                      disabled={!isEditing}
-                      onChange={(event) => setEducation(event.target.value.split(",").map((e) => e.trim()))}
-                      className={inputStyles}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 md:col-span-2">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                      <Briefcase className="h-4 w-4 text-muted" />
-                      <span>Professional Experience</span>
-                    </Label>
-                    <Input
-                      placeholder="e.g. 3 years teaching (comma separated)"
-                      value={experience.join(", ")}
-                      disabled={!isEditing}
-                      onChange={(event) => setExperience(event.target.value.split(",").map((e) => e.trim()))}
-                      className={inputStyles}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 md:col-span-4">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-muted" />
-                      <span>Availability Days / Hours</span>
-                    </Label>
-                    <Input
-                      placeholder="e.g. Mon-Fri 6-9pm (comma separated)"
-                      value={availability.join(", ")}
-                      disabled={!isEditing}
-                      onChange={(event) => setAvailability(event.target.value.split(",").map((a) => a.trim()))}
-                      className={inputStyles}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 md:col-span-4">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted" />
-                      <span>Bio & Description</span>
-                    </Label>
-                    <textarea
-                      placeholder="Tell students about yourself..."
-                      value={teacherBio}
-                      disabled={!isEditing}
-                      onChange={(event) => setTeacherBio(event.target.value)}
-                      className={`min-h-120px w-full rounded-[14px] border p-4 text-[15px] transition-all outline-none shadow-none mt-2 resize-none ${isEditing
-                        ? "border-border bg-card text-body focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary focus-visible:outline-none"
-                        : "border-border/40 bg-muted/30 text-muted-foreground cursor-not-allowed select-none"
-                        }`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {isStudent && (
-            <>
-              <Separator className="bg-border/60" />
-              <div className="space-y-6">
-                <h3 className="text-[18px] font-bold text-heading tracking-tight flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5 text-primary" />
-                  Student Profile Details
-                </h3>
-
-                <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
-                  <div className="space-y-1.5 md:col-span-2">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                      <BookOpen className="h-4 w-4 text-muted" />
-                      <span>Preferred Subjects</span>
-                    </Label>
-                    <Input
-                      placeholder="e.g. Math, Science (comma separated)"
-                      value={preferredSubjects.join(", ")}
-                      disabled={!isEditing}
-                      onChange={(event) => setPreferredSubjects(event.target.value.split(",").map((s) => s.trim()))}
-                      className={inputStyles}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 md:col-span-2">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                      <Target className="h-4 w-4 text-muted" />
-                      <span>Learning Goals</span>
-                    </Label>
-                    <Input
-                      placeholder="e.g. Improve algebra, Pass exams (comma separated)"
-                      value={learningGoals.join(", ")}
-                      disabled={!isEditing}
-                      onChange={(event) => setLearningGoals(event.target.value.split(",").map((g) => g.trim()))}
-                      className={inputStyles}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 md:col-span-4">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-muted" />
-                      <span>Interests</span>
-                    </Label>
-                    <Input
-                      placeholder="e.g. Robotics, Coding (comma separated)"
-                      value={interests.join(", ")}
-                      disabled={!isEditing}
-                      onChange={(event) => setInterests(event.target.value.split(",").map((i) => i.trim()))}
-                      className={inputStyles}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 md:col-span-4">
-                    <Label className="text-[14px] font-semibold text-heading flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted" />
-                      <span>Bio & Description</span>
-                    </Label>
-                    <textarea
-                      placeholder="Tell teachers more about yourself..."
-                      value={studentBio}
-                      disabled={!isEditing}
-                      onChange={(event) => setStudentBio(event.target.value)}
-                      className={`min-h-[120px] w-full rounded-[14px] border p-4 text-[15px] transition-all outline-none shadow-none mt-2 resize-none ${isEditing
-                        ? "border-border bg-card text-body focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary focus-visible:outline-none"
-                        : "border-border/40 bg-muted/30 text-muted-foreground cursor-not-allowed select-none"
-                        }`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
         </CardContent>
       </Card>
     </div>

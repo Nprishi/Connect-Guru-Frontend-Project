@@ -2,6 +2,7 @@ import axios from "axios";
 
 import { API_BASE_URL } from "@/constants/api";
 import { getStoredAuth } from "@/lib/auth";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -12,7 +13,9 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const { accessToken } = getStoredAuth();
+    const storeToken = useAuthStore.getState().accessToken;
+    const { accessToken: storedToken } = getStoredAuth();
+    const accessToken = storeToken ?? storedToken;
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;

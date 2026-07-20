@@ -105,11 +105,11 @@ export function Searchbar({
 
             {/* subtle gradient overlay */}
 
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/40 via-white/10 to-white/40" />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.4),rgba(255,255,255,0.1),rgba(255,255,255,0.4))]" />
 
             {/* bottom gradient line */}
 
-            <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+            <div className="absolute bottom-0 left-0 h-px w-full bg-[linear-gradient(to_right,transparent,rgba(226,232,240,1),transparent)]" />
 
 
             {/* CONTAINER */}

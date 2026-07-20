@@ -7,11 +7,11 @@ import { useState } from "react";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
 
-const navLinks = [
-  { label: "Find Teachers", href: ROUTES.teachers },
-  { label: "Packages", href: ROUTES.packages },
-  { label: "Profile", href: ROUTES.profile },
-];
+// const navLinks = [
+//   { label: "Find Teachers", href: ROUTES.teachers },
+//   { label: "Packages", href: ROUTES.packages },
+//   { label: "Profile", href: ROUTES.profile },
+// ];
 
 export function GuestShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -19,26 +19,25 @@ export function GuestShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-8 flex max-w-7xl items-center justify-between px-2 py-1 sm:px-2 lg:px-6">
-          <Link href={ROUTES.home} className="flex items-center gap-0">
-           
-              <Image
-                src="/LOGO.png"
-                alt="Connect Guru"
-                width={180}
-                height={50}
-                className="w-32 md:w-44 lg:w-64 h-18 object-contain"
-              />
-            <span className="text-lg font-semibold">Connect Guru</span>
+        <div className="mx-18 flex max-w-8xl items-center justify-between px-4 py-1 sm:px-2 lg:px-4">
+          <Link href={ROUTES.home} className="items-center gap-2 flex">
+            <Image
+              src="/LOGO.png"
+              alt="Connect Guru"
+              width={80}
+              height={20}
+              className="w-16 md:w-12 lg:w-12 object-contain"
+            />
+            <span className="text-3xl font-semibold">Connect Guru</span>
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex">
+          {/* <nav className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
                 {link.label}
               </Link>
             ))}
-          </nav>
+          </nav> */}
 
           <div className="flex items-center gap-2">
             <Link href={ROUTES.login} className="hidden rounded-full px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 sm:inline-flex">
@@ -56,11 +55,11 @@ export function GuestShell({ children }: { children: ReactNode }) {
         {mobileOpen ? (
           <div className="border-t border-slate-200 bg-white px-4 py-4 md:hidden">
             <div className="flex flex-col gap-2">
-              {navLinks.map((link) => (
+              {/* {navLinks.map((link) => (
                 <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
                   {link.label}
                 </Link>
-              ))}
+              ))} */}
               <Link href={ROUTES.login} onClick={() => setMobileOpen(false)} className="rounded-full border border-slate-200 px-3 py-2 text-center text-sm font-medium text-slate-700">
                 Sign In
               </Link>
