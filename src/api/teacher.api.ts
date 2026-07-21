@@ -10,6 +10,7 @@ import type {
   TeacherProfileResponse,
   TeacherListResponse,
   TeacherOverviewResponse,
+  TeacherStudent,
   TeacherStudentsResponse,
 } from "@/types/teacher";
 import type { ApiResponse } from "@/types/api";
@@ -87,19 +88,49 @@ export const getTeacherOverview = async (): Promise<TeacherOverviewResponse> => 
   return data;
 };
 
-export const getTeacherStudents = async (): Promise<TeacherStudentsResponse["data"]> => {
+export const getTeacherStudents = async (): Promise<TeacherStudent[]> => {
   try {
-    const { data } = await apiClient.get<TeacherStudentsResponse>(
+    const { data } = await apiClient.get<unknown>(
       API_ENDPOINTS.teachers.students,
     );
 
-    return data.data;
+    if (Array.isArray(data)) {
+      return data as TeacherStudent[];
+    }
+
+    if (data && typeof data === "object") {
+      const response = data as Record<string, unknown>;
+      const candidates = [
+        response.students,
+        response.data,
+        response.items,
+        response.result,
+      ];
+
+      for (const candidate of candidates) {
+        if (Array.isArray(candidate)) {
+          return candidate as TeacherStudent[];
+        }
+      }
+
+      const nestedData = response.data;
+      if (nestedData && typeof nestedData === "object") {
+        const nested = nestedData as Record<string, unknown>;
+        const nestedStudents = nested.students;
+        if (Array.isArray(nestedStudents)) {
+          return nestedStudents as TeacherStudent[];
+        }
+      }
+    }
+
+    return [];
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
+    if (axios.isAxiosError(error) && [400, 401, 403, 404, 409].includes(error.response?.status ?? 0)) {
       return [];
     }
 
-    throw error;
+    console.warn("Unable to load teacher students list.", error);
+    return [];
   }
 };
 

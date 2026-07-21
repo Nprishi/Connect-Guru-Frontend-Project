@@ -9,7 +9,8 @@ import { useTeacherStudentsQuery } from "@/hooks/useQueryHooks";
 
 export default function TeacherStudents() {
   const [search, setSearch] = useState("");
-  const { data: students = [], isLoading, error } = useTeacherStudentsQuery();
+  const { data, isLoading, error } = useTeacherStudentsQuery();
+  const students = Array.isArray(data) ? data : [];
 
   const filtered = useMemo(
     () => students.filter((student) => {
@@ -69,7 +70,11 @@ export default function TeacherStudents() {
             </div>
           ))
         ) : filtered.length ? (
-          filtered.map((student) => <StudentCard key={student._id} student={student} />)
+          filtered.map((student, index) => {
+            const studentKey = student._id ?? student.user?._id ?? student.user?.email ?? `${student.user?.firstName ?? "student"}-${student.user?.lastName ?? "student"}-${index}`;
+
+            return <StudentCard key={studentKey} student={student} />;
+          })
         ) : (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600 lg:col-span-2">
             No students match your current search.

@@ -7,8 +7,17 @@ import { getAdminDashboard } from "@/api/admin.api";
 import { getBookings } from "@/api/bookings.api";
 import { getConversations, getMessages } from "@/api/chat.api";
 import { getNotifications } from "@/api/notification.api";
-import { getPackages, getTeacherPackages } from "@/api/package.api";
-import { getCurrentStudent, getStudentDashboard } from "@/api/student.api";
+import {
+  getCurrentTeacherPackages,
+  getPackage,
+  getPackages,
+  getTeacherPackages,
+} from "@/api/package.api";
+import {
+  getCurrentStudent,
+  getStudentDashboard,
+  getStudentProfile,
+} from "@/api/student.api";
 import {
   getTeachers,
   getCurrentTeacherProfile,
@@ -41,6 +50,18 @@ export function useStudentDashboardQuery() {
   return useQuery({
     queryKey: ["student", "dashboard"],
     queryFn: getStudentDashboard,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useStudentProfileQuery(userId?: string) {
+  return useQuery({
+    queryKey: ["student", userId],
+    queryFn: () => getStudentProfile(userId!),
+    enabled: Boolean(userId),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
     retry: 1,
@@ -93,6 +114,10 @@ export function useTeacherStudentsQuery() {
     queryKey: ["teacher", "students"],
     queryFn: getTeacherStudents,
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 0,
+    refetchOnWindowFocus: false,
+    throwOnError: false,
   });
 }
 
@@ -132,6 +157,21 @@ export function usePackagesQuery() {
     queryKey: ["packages"],
     queryFn: getPackages,
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useCurrentTeacherPackagesQuery(enabled = true) {
+  return useQuery({
+    queryKey: ["teacher-packages"],
+    queryFn: getCurrentTeacherPackages,
+    enabled,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -141,6 +181,21 @@ export function useTeacherPackagesQuery(teacherId?: string) {
     queryFn: () => getTeacherPackages(teacherId!),
     enabled: Boolean(teacherId),
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function usePackageQuery(packageId?: string) {
+  return useQuery({
+    queryKey: ["package", packageId],
+    queryFn: () => getPackage(packageId!),
+    enabled: Boolean(packageId),
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 }
 

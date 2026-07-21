@@ -1,131 +1,128 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getPackages } from "@/api/package.api";
+import Link from "next/link";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, CalendarRange, CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
-
-interface PackageType {
-  id: string;
-  name: string;
-  sessions: number;
-  description: string;
-  price: number;
-}
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePackagesQuery } from "@/hooks/useQueryHooks";
+import { Clock3, DollarSign, Sparkles, Users } from "lucide-react";
 
 export default function PackagesPage() {
-  const router = useRouter();
-  const [packages, setPackages] = useState<PackageType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: packages = [], isLoading, isError, error } = usePackagesQuery();
 
   useEffect(() => {
-    getPackages()
-      .then((items) => {
-        setPackages(items || []);
-      })
-      .catch(() => {
-        setPackages([]);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  const handlePurchase = (packageId: string) => {
-
-    router.push(`/checkout?packageId=${packageId}`);
-  };
+    if (isError) {
+      toast.error(error?.message || "Unable to load packages right now.");
+    }
+  }, [error, isError]);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto py-4 font-sans text-left">
-      {/* Header Card */}
-      <div className="relative overflow-hidden rounded-[24px] border border-border bg-linear-to-r from-background via-card to-background p-8 md:p-10 shadow-soft">
-        <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
-        <div className="relative z-10 space-y-2 max-w-2xl">
-          <Badge className="bg-primary/10 hover:bg-primary/15 text-primary border-none px-3 py-1 text-[11px] font-bold uppercase tracking-wider rounded-full">
-            <Sparkles className="h-3.5 w-3.5 mr-1.5 inline fill-primary/10" />
-            Pricing Plans
-          </Badge>
-          <h1 className="text-[32px] md:text-[36px] font-bold tracking-tight text-heading leading-tight">
-            Learning packages
-          </h1>
-          <p className="text-[15px] font-medium text-body leading-relaxed">
-            Choose a flexible package suited perfectly to your learning pace and current goals.
-          </p>
+    <div className="mx-auto flex max-w-7xl flex-col gap-6 py-4">
+      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 bg-slate-50 p-6 md:p-8">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <Badge className="border-none bg-violet-100 text-violet-700">
+                <Sparkles className="mr-1 h-3.5 w-3.5" />
+                Available Packages
+              </Badge>
+              <h1 className="mt-3 text-2xl font-bold text-slate-900">Explore learning packages</h1>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600">
+                Browse current tutoring packages, review duration and session details, and prepare for your next learning plan.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 md:p-8">
+          {isLoading ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Card key={index} className="rounded-3xl border border-slate-200 bg-slate-50">
+                  <CardHeader className="space-y-3">
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : packages.length ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {packages.map((pkg) => (
+                <Card key={pkg._id} className="flex h-full flex-col rounded-3xl border border-slate-200 bg-white shadow-sm">
+                  <CardHeader className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-slate-900">{pkg.name}</CardTitle>
+                        <CardDescription className="mt-2 text-sm text-slate-600">{pkg.description}</CardDescription>
+                      </div>
+                      <Badge variant={pkg.isActive ? "secondary" : "outline"}>
+                        {pkg.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="mt-auto flex flex-col gap-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                          <DollarSign className="h-4 w-4 text-violet-600" />
+                          Price
+                        </div>
+                        <p className="mt-2 text-lg font-semibold text-slate-900">${pkg.price}</p>
+                      </div>
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                          <Users className="h-4 w-4 text-violet-600" />
+                          Sessions
+                        </div>
+                        <p className="mt-2 text-lg font-semibold text-slate-900">{pkg.sessions}</p>
+                      </div>
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:col-span-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                          <Clock3 className="h-4 w-4 text-violet-600" />
+                          Duration
+                        </div>
+                        <p className="mt-2 text-lg font-semibold text-slate-900">{pkg.durationInHours}h</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Link href={`/packages/${pkg._id}`} className="flex-1">
+                        <Button variant="outline" className="w-full">
+                          View Details
+                        </Button>
+                      </Link>
+                      <Button disabled className="flex-1">
+                        Purchase
+                      </Button>
+                    </div>
+                    <p className="text-xs text-slate-500">TODO: Booking module pending.</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-600">
+              No packages available.
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Loading & Package Display States */}
-      {loading ? (
-        <div className="flex h-40 w-full items-center justify-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          <span className="text-[14px] font-semibold text-body">Loading dynamic plans...</span>
-        </div>
-      ) : packages && packages.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {packages.map((pkg) => (
-            <Card
-              key={pkg.id}
-              className="group relative rounded-[24px] border border-border bg-card shadow-soft hover:shadow-glow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 right-0 h-0.75 bg-linear-to-r from-primary to-[#7C3AED] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-              <div>
-                <CardHeader className="p-6 pb-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <CardTitle className="text-[20px] font-bold text-heading tracking-tight mt-1 leading-snug">
-                      {pkg.name}
-                    </CardTitle>
-                    <Badge className="bg-[#4F46E5]/10 text-[#4F46E5] hover:bg-[#4F46E5]/15 border-none px-3 py-1 text-[12px] font-semibold flex items-center gap-1 rounded-full whitespace-nowrap">
-                      <CalendarRange className="h-3.5 w-3.5" />
-                      {pkg.sessions} sessions
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-[14px] text-body mt-2.5 leading-relaxed min-h-12">
-                    {pkg.description}
-                  </CardDescription>
-                </CardHeader>
-
-                <div className="px-6 py-2 space-y-2.5 border-t border-border/50">
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" />
-                    <span className="text-[13px] font-semibold text-heading">Flexible access anytime</span>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" />
-                    <span className="text-[13px] font-semibold text-heading">1-on-1 expert matching</span>
-                  </div>
-                </div>
-              </div>
-
-              <CardContent className="p-6 pt-4 border-t border-border/50 mt-auto flex flex-col gap-4">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-[13px] font-bold text-muted uppercase tracking-wider">Total Price</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[32px] font-bold tracking-tight text-heading">${pkg.price}</span>
-                    <span className="text-[13px] font-semibold text-muted">/pkg</span>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => handlePurchase(pkg.id)}
-                  className="w-full h-11 rounded-[14px] bg-primary hover:bg-primary-hover text-[14px] font-semibold text-white shadow-soft transition-all duration-200 gap-1.5 flex items-center justify-center group-hover:scale-[1.01]"
-                >
-                  Buy now
-                  <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-[24px] border border-border bg-card p-12 text-center shadow-soft">
-          <p className="text-body font-semibold text-[15px]">No learning packages available right now.</p>
-        </div>
-      )}
     </div>
   );
 }

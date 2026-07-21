@@ -1,5 +1,22 @@
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/cg";
+const rawApiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+
+export const API_BASE_URL = (() => {
+  if (!rawApiBaseUrl) {
+    return "http://localhost:5000/api/cg";
+  }
+
+  const normalized = rawApiBaseUrl.replace(/\/+$/, "");
+
+  if (normalized.endsWith("/api/cg")) {
+    return normalized;
+  }
+
+  if (normalized.endsWith("/api")) {
+    return `${normalized}/cg`;
+  }
+
+  return `${normalized}/api/cg`;
+})();
 
 export const API_ENDPOINTS = {
   superAdmin: {

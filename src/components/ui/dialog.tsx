@@ -1,7 +1,17 @@
 import { type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-function Dialog({ children }: { children: ReactNode }) {
+type DialogProps = {
+  children: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
+
+function Dialog({ children, open = true }: DialogProps) {
+  if (!open) {
+    return null;
+  }
+
   return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">{children}</div>;
 }
 

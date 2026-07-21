@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosHeaders } from "axios";
 
 import { API_BASE_URL } from "@/constants/api";
 import { getStoredAuth } from "@/lib/auth";
@@ -17,8 +17,11 @@ apiClient.interceptors.request.use(
     const { accessToken: storedToken } = getStoredAuth();
     const accessToken = storeToken ?? storedToken;
 
+    const headers = config.headers ?? new AxiosHeaders();
+
     if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+      headers.set("Authorization", `Bearer ${accessToken}`);
+      config.headers = headers;
     }
 
     return config;
